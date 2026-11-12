@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<title>讀伴・樹狀閱讀</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css?v=20261111i">
+<link rel="stylesheet" href="assets/mobile.css?v=20261107n" media="(max-width: 760px) and (pointer: coarse)">
+</head>
+<body>
+
+<!-- 頂列:品牌 | 階段切換(置中) | 「⋯」選單(閱讀回顧、匯出筆記|讀伴介紹、功能說明|登出) -->
+<header class="topbar">
+  <div class="tb-left">
+  <div class="tb-side brand">
+    <!-- 讀伴標誌:翻開的書,左頁是文字行、右頁是分枝匯聚(樹狀討論) -->
+    <svg class="brand-logo" viewBox="0 0 640 620" aria-hidden="true">
+      <path class="bl-cover" d="M0,108 L32,92 L32,80 C120,20 250,0 338,42 C420,-5 520,0 597,30 L597,50 L630,62 L630,528 C540,520 420,535 338,605 C250,545 120,530 10,595 L0,592 Z"/>
+      <path class="bl-page" d="M52,78 C130,30 250,20 328,58 L328,520 C250,480 140,475 52,528 Z"/>
+      <path class="bl-page" d="M348,58 C420,15 520,15 580,40 L580,470 C500,450 410,460 348,515 Z"/>
+      <g class="bl-ink">
+        <path d="M80,180 C150,140 240,135 310,165"/>
+        <path d="M80,255 C150,215 240,210 310,240"/>
+        <path d="M80,330 C150,290 240,285 310,315"/>
+        <path d="M160,385 C210,365 260,370 310,400"/>
+        <path d="M362,165 C395,138 420,140 440,165 C456,186 466,225 484,240"/>
+        <path d="M362,245 C398,220 445,215 484,240"/>
+        <path d="M362,325 C398,302 445,285 484,240"/>
+        <path d="M362,400 C392,374 412,368 430,345 C452,318 470,265 484,240"/>
+        <path d="M484,240 C512,246 535,246 556,252"/>
+      </g>
+    </svg>
+    <h1 class="brand-name">讀伴</h1>
+    <span class="brand-rule" aria-hidden="true"></span>
+    <span class="brand-tag">非線性的深度閱讀夥伴</span>
+  </div>
+
+  <!-- 電腦版:讀本的控制項(文本標題、篇章、搜尋、字級、標記圖例、看原檔、收合)由 JS 從左欄搬到這裡,讓左欄只剩原文;
+       手機版(mobile.css 生效時)留在左欄原處 -->
+  <div class="tb-reader" id="tbReader" hidden>
+    <!-- 文本標題(btnChangeDoc)與搜尋列(readerFind)由 JS 搬到這個按鈕前面;其餘讀本功能全收在「≡」選單裡 -->
+    <span class="rmenu-wrap" id="rmenuWrap">
+      <button type="button" class="icon-btn" id="btnReaderMenu" aria-label="讀本功能" title="讀本功能：目錄、搜尋、字級、標記圖例、看原檔" aria-haspopup="menu" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>
+      </button>
+      <div class="pop-menu reader-menu hidden" id="readerMenu" role="menu">
+        <div class="rm-row" id="rmFont"><span class="rm-label">字級</span></div>
+        <button type="button" role="menuitem" id="rmFind"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>搜尋讀本（關鍵字或段落號）</button>
+        <div class="menu-sep"></div>
+        <button type="button" role="menuitem" id="rmReadToc" title="打開目錄與書籤：跳到各節，也在那裡用書籤選這次讀完的範圍" aria-expanded="false"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>目錄與書籤</span></button>
+        <div class="rm-sec" id="rmChapters">
+          <!-- 目錄預設收起,點這一列才展開標題清單 -->
+          <button type="button" role="menuitem" id="rmChToggle" aria-expanded="false" aria-controls="rmChapterList"><svg class="mi rm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span>目錄<small id="rmChNote"></small></span></button>
+          <div class="rm-list" id="rmChapterList" hidden></div>
+        </div>
+        <div class="menu-sep"></div>
+        <button type="button" role="menuitem" id="rmSave" title="把目前的對話、筆記、重點畫記與書籤存到伺服器（平常也會自動儲存）；登出後再登入，打開同一篇就能接著讀"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3"/><path d="M8 21v-7h8v7"/></svg><span>儲存進度<small id="rmSaveNote"></small></span></button>
+        <button type="button" role="menuitem" id="rmOrig" title="另開分頁顯示老師上傳的原始檔案（PDF 或 Word）"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7"/><path d="M10 14L21 3"/><path d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg><span>看原檔<small id="rmOrigNote"></small></span></button>
+        <div class="rm-row" id="rmLegend"></div>
+      </div>
+    </span>
+  </div>
+  </div>
+
+  <nav class="seg stage-tabs" aria-label="閱讀階段">
+    <button type="button" id="btnBriefing">導讀</button>
+    <button type="button" id="btnReading">閱讀</button>
+    <button type="button" id="btnDialogue">對話</button>
+    <button type="button" id="btnSummary" title="閱讀回顧：讀伴整理你問過的問題、長出的想法與還沒解開的線頭">回顧</button>
+  </nav>
+
+  <div class="tb-side tb-right">
+    <button type="button" class="icon-btn" id="btnMenu" aria-label="更多選項" aria-haspopup="menu" aria-expanded="false">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+    </button>
+    <div class="pop-menu top-menu hidden" id="topMenu" role="menu">
+      <div class="menu-sep"></div>
+      <button type="button" role="menuitem" id="btnAbout"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg>讀伴介紹</button>
+      <button type="button" role="menuitem" id="btnFeatures"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5v.01"/></svg>功能說明</button>
+      <div class="menu-sep"></div>
+      <button type="button" role="menuitem" id="btnLogout" class="muted" title="登出並清除這台電腦上的閱讀紀錄"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4"/></svg>登出</button>
+    </div>
+  </div>
+</header>
+
+<!-- 手機/平板:三欄上下排列時,一鍵跳到某一欄 -->
+<nav class="mobile-jump" id="mobileJump" aria-label="跳到欄位">
+  <button type="button" data-jump="reader">讀本</button>
+  <button type="button" data-jump="chat" id="jumpMid">導讀</button>
+  <button type="button" data-jump="notes" id="jumpSide">筆記</button>
+</nav>
+
+<main class="workspace stage-guide" id="workspace">
+
+  <!-- 左欄:讀本 -->
+  <section class="col" id="panelReader" aria-label="讀本">
+    <div class="col-head">
+      <h2>讀本</h2>
+      <!-- 文本標題本身就是「更換文本」的入口,不另放顯眼的按鈕 -->
+      <button type="button" class="doc-switch" id="btnChangeDoc" title="更換文本">
+        <span class="doc-title" id="topDocTitle"></span>
+        <svg class="ds-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="sr-only" id="changeDocLabel">更換文本</span>
+      </button>
+      <select id="chapterSel" class="chapter-sel" hidden aria-label="跳到目錄" title="跳到目錄"></select>
+      <span class="spacer"></span>
+      <button type="button" class="icon-btn" id="btnReaderFind" aria-label="搜尋讀本" title="搜尋讀本（關鍵字或段落號碼）">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      </button>
+      <button type="button" class="sq-btn" id="btnFontMinus" aria-label="縮小字級" title="縮小字級">A−</button>
+      <button type="button" class="sq-btn sq-big" id="btnFontPlus" aria-label="放大字級" title="放大字級">A+</button>
+      <button type="button" class="icon-btn col-collapse" id="btnCollapseReader" aria-label="收合讀本" title="收合讀本">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+    </div>
+    <!-- 搜尋列:關鍵字逐一標亮;輸入數字直接跳到該段 -->
+    <div class="reader-find" id="readerFind" hidden>
+      <input type="search" id="rfInput" placeholder="關鍵字，或段落號碼" aria-label="搜尋讀本" autocomplete="off">
+      <span class="rf-count" id="rfCount" aria-live="polite"></span>
+      <button type="button" class="sq-btn" id="rfPrev" aria-label="上一個" title="上一個（Shift+Enter）">‹</button>
+      <button type="button" class="sq-btn" id="rfNext" aria-label="下一個" title="下一個（Enter）">›</button>
+      <button type="button" class="sq-btn" id="rfClose" aria-label="關閉搜尋" title="關閉（Esc）">×</button>
+    </div>
+    <div class="reader-body" id="readerBody"></div>
+    <div class="reader-legend" aria-label="標記圖例">
+      <span>標記：</span>
+      <span class="mk mk-quote">引用</span>
+      <span class="mk mk-branch">分支</span>
+      <span class="mk mk-note">筆記</span>
+      <span class="mk mk-hl" title="重點畫記">重點</span>
+      <a class="orig-link" id="btnOrig" hidden target="_blank" rel="noopener" title="另開分頁顯示老師上傳的原始檔案（PDF 或 Word）">看原檔 ↗</a>
+    </div>
+  </section>
+  <button type="button" class="col-strip strip-left" id="btnExpandReader" aria-label="展開讀本">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    <span>讀本</span>
+  </button>
+
+  <div class="divider" id="colSplitL" role="separator" aria-orientation="vertical" aria-label="拖曳調整讀本寬度，雙擊恢復預設" tabindex="0" title="拖曳調整讀本寬度，雙擊恢復預設"><i></i></div>
+
+  <!-- 中欄:導讀(導讀階段)/對話(對話階段) -->
+  <section class="col" id="panelChat" aria-label="導讀與對話">
+    <div class="col-head mid-head">
+      <h2 id="midTitle">導讀</h2>
+      <nav class="crumbs" id="crumbs" aria-label="對話路徑"></nav>
+      <span class="spacer"></span>
+      <div class="branch-actions" id="branchActions">
+        <button type="button" class="mini-btn tall" id="btnKeepBranch" title="不放回主幹，先把這條分支留著">保留分支</button>
+        <button type="button" class="mini-btn tall branch-btn" id="btnMergeBranch" title="把這條分支的對話整理成摘要帶回主幹；回到主幹後，讀伴會記得這段對話">收束回主幹</button>
+      </div>
+      <button type="button" class="icon-btn col-collapse" id="btnCollapseMid" aria-label="收合中欄" title="收合">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+      </button>
+    </div>
+
+    <!-- 導讀 -->
+    <div class="briefing" id="briefingView">
+      <div class="briefing-scroll">
+        <p class="brief-intro">先用幾分鐘看看這篇文本的樣貌，再進入閱讀。</p>
+        <div class="card">
+          <h3>重點摘要 <small>AI 生成</small></h3>
+          <div class="card-text" id="briefSummary"><span class="brief-loading">讀伴整理中⋯</span></div>
+        </div>
+        <div class="card">
+          <h3>相關背景 <small>AI 生成</small></h3>
+          <div class="card-text" id="briefBackground"><span class="brief-loading">讀伴整理中⋯</span></div>
+        </div>
+        <div class="card" id="briefMapCard">
+          <div class="card-head">
+            <h3>心智圖 <small>AI 生成・點擊放大</small></h3>
+            <button type="button" class="mini-btn tall" id="btnBriefRetry" title="重新整理這篇文本的導讀">重新生成</button>
+          </div>
+          <div class="mm-list" id="briefMapWrap" role="button" tabindex="0" aria-label="放大心智圖"></div>
+        </div>
+      </div>
+      <div class="brief-foot">
+        <span class="brief-gate-hint" id="briefGateHint">先在「≡」選單的「目錄與書籤」選好這次讀完的範圍，才能對話</span>
+        <button type="button" class="btn primary block" id="btnBriefDone">我已讀完，開始對話</button>
+      </div>
+    </div>
+
+    <!-- 對話 -->
+    <div class="chat-body" id="chatBody"></div>
+    <div class="composer">
+      <div class="pending-quote" id="pendingQuote" style="display:none;">
+        <strong>引用</strong><span id="pendingQuoteText"></span>
+        <button type="button" id="btnClearQuote" aria-label="移除引用" title="移除引用">✕</button>
+      </div>
+      <div class="persona-row">
+        <div class="seg seg-sm persona-seg" id="personaPills" role="group" aria-label="讀伴角色">
+          <button type="button" data-p="guide" class="on" title="引導者：順著你的思路提問，陪你把想法建立起來。適合剛開始、還在整理思緒時。">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M5 6h11l3 3-3 3H5z"/></svg>引導者
+          </button>
+          <button type="button" data-p="critic" title="批判者：從你的論點裡找矛盾與縫隙，陪你檢驗想法。適合已經有看法、想聽不同意見時。">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16"/><path d="M8 20h8"/><path d="M5 8h14"/><path d="M5 8l-3 6a3 3 0 0 0 6 0z"/><path d="M19 8l-3 6a3 3 0 0 0 6 0z"/></svg>批判者
+          </button>
+          <button type="button" data-p="explorer" title="探索者：提出你還沒想過的角度，幫你打開新方向。適合卡住、或想換個方式讀時。">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>探索者
+          </button>
+        </div>
+      </div>
+      <div class="composer-row">
+        <label for="composerInput" class="sr-only">輸入你的想法</label>
+        <textarea id="composerInput" rows="2" placeholder="寫下你的想法…"></textarea>
+        <div class="send-col">
+          <button type="button" class="btn lookup-btn" id="btnLookup" title="名詞解釋、翻譯、背景資料（不會送進對話）">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>簡易查詢
+          </button>
+          <button type="button" class="btn primary send-btn" id="btnSend">送出</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <button type="button" class="col-strip" id="btnExpandMid" aria-label="展開中欄">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    <span id="midStripLabel">導讀</span>
+  </button>
+
+  <div class="divider" id="colSplitR" role="separator" aria-orientation="vertical" aria-label="拖曳調整右欄寬度，雙擊恢復預設" tabindex="0" title="拖曳調整右欄寬度，雙擊恢復預設"><i></i></div>
+
+  <!-- 右欄:對話樹(對話階段)+ 筆記 -->
+  <aside class="col side-col" id="panelSide" aria-label="對話樹與筆記">
+    <div class="side-sec" id="treeSec">
+      <div class="sec-head">
+        <button type="button" class="sec-toggle" id="btnToggleTree" aria-expanded="true" aria-label="收合或展開對話樹">
+          <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="sec-name">對話樹</span>
+        </button>
+        <button type="button" class="icon-btn col-collapse" data-collapse-side aria-label="收合右欄" title="收合右欄">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="sec-body">
+        <div class="tip" id="treeTip">
+          <span>在讀本選取文字，或在訊息上按「節外生枝」，就會長出新的分支。</span>
+          <button type="button" id="btnCloseTip" aria-label="關閉提示" title="不再顯示">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div class="tree-list" id="treeList" role="tree" aria-label="對話樹"></div>
+      </div>
+    </div>
+    <div class="hdivider" id="sideSplitter" role="separator" aria-orientation="horizontal" aria-label="拖曳調整對話樹高度，雙擊恢復預設" tabindex="0" title="拖曳調整對話樹高度，雙擊恢復預設"><i></i></div>
+    <div class="side-sec" id="notesSec">
+      <div class="sec-head">
+        <button type="button" class="sec-toggle" id="btnToggleNotes" aria-expanded="true" aria-label="收合或展開筆記">
+          <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="sec-name">筆記</span>
+          <span class="sec-count" id="noteCount"></span>
+        </button>
+        <button type="button" class="mini-btn" id="btnAddNote" title="自己寫一則筆記（可加標題）">＋ 手寫筆記</button>
+        <button type="button" class="icon-btn col-collapse notes-collapse" data-collapse-side aria-label="收合右欄" title="收合右欄">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="sec-body">
+        <div class="note-filters" id="noteFilters" role="group" aria-label="依來源篩選筆記" style="display:none;"></div>
+        <div class="notes-area" id="notesArea"></div>
+      </div>
+    </div>
+  </aside>
+  <button type="button" class="col-strip strip-right" id="btnExpandSide" aria-label="展開右欄">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+    <span id="sideStripLabel">筆記</span>
+  </button>
+</main>
+
+<!-- 階段一：導讀頁（置中、背後暗色）。導讀的內容區塊（#briefingView）在這個階段搬進 #guideMain -->
+<div class="stage-view guide-view hidden" id="guideView" aria-label="導讀頁">
+  <div class="gv-scroll">
+    <div class="gv-wrap">
+      <section class="gv-main" aria-labelledby="gvTitle">
+        <!-- 框固定、內容在 .gv-body 裡捲動(上方圓角不會被切掉);「開始閱讀」固定在框的右下角 -->
+        <div class="gv-body" id="gvBody">
+          <header class="gv-head">
+            <h2 id="gvTitle">導讀</h2>
+          </header>
+          <div id="guideMain"></div>
+        </div>
+        <div class="gv-fab"><button type="button" class="btn primary gv-start" id="btnGuideStart">開始閱讀</button></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- 階段二：閱讀頁（乾淨、置中、背後暗色）。讀本（#panelReader）與筆記欄（#panelSide）在這個階段搬進來 -->
+<div class="stage-view read-view hidden" id="readView" aria-label="閱讀頁">
+  <div class="rv-wrap">
+    <div class="rv-slot" id="readSlot">
+      <!-- 文本框右下角的懸浮按鈕(捲動時固定):筆記(看筆記歷史)、開始對話 -->
+      <div class="rv-fab" id="readFab">
+        <button type="button" class="round-btn" id="btnReadNotes" aria-expanded="false" aria-label="筆記" title="查看所有筆記">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 11h8M8 15h6"/></svg><span class="rv-count" id="rvNoteCount"></span></button>
+        <span class="rv-go" id="readGo"></span>
+      </div>
+    </div>
+  </div>
+  <aside class="rv-toc" id="readToc" aria-label="目錄" aria-hidden="true">
+    <div class="toc-head"><span>目錄與書籤</span>
+      <button type="button" class="rv-notes-close" id="btnReadTocClose" aria-label="收起目錄" title="收起目錄">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="toc-hint">請用書籤標示出最近讀完的段落，作為下一步讀伴深度對話的範圍：按節名右邊的書籤，先點起點、再點終點（或按住拖曳）。每次的範圍要相連，各次之間可以跳過。點節名可跳到該處；再按一次同一節的書籤取消。</div>
+    <div class="toc-status" id="tocStatus" aria-live="polite"></div>
+    <div class="toc-list" id="tocList"></div>
+  </aside>
+  <div class="rv-notes" id="readNotesSlot" aria-hidden="true">
+    <button type="button" class="rv-notes-close" id="btnReadNotesClose" aria-label="收起筆記" title="收起筆記">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- 拖曳分隔線時蓋住整頁,避免選到文字 -->
+<div class="drag-shield" id="dragShield"></div>
+
+<!-- 選取文字後的工具列:引至對話、節外生枝、存成筆記、重點畫記(導讀時只有存成筆記、重點畫記) -->
+<div class="sel-toolbar" id="selToolbar">
+  <div class="st-row">
+    <button type="button" id="selQuote" class="st-quote">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>引至對話
+    </button>
+    <button type="button" id="selBranch" class="st-branch">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>節外生枝
+    </button>
+    <button type="button" id="selNote" class="st-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 19c0-8 6-14 15-14 0 9-6 15-14 15"/><path d="M5 19l7-7"/></svg>存成筆記
+    </button>
+    <button type="button" id="selHighlight" class="st-hl">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l-6 6v3h9l3-3"/><path d="M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg><span id="selHlLabel">重點畫記</span>
+    </button>
+    <button type="button" id="selLookup" class="st-lookup" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>簡易查詢
+    </button>
+  </div>
+</div>
+
+<!-- 閱讀頁：存成筆記後，在選取的文字旁邊跳出的小視窗（寫註記）；點讀本上已有筆記的標記也會開同一個視窗 -->
+<div class="note-pop" id="notePop" role="dialog" aria-label="筆記" hidden>
+  <div class="np-head"><span>筆記</span>
+    <button type="button" class="np-x" id="npClose" aria-label="關閉" title="關閉">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <label class="np-lab" for="npQuote">筆記內容（選取的文字，可修改）</label>
+  <textarea id="npQuote" rows="3"></textarea>
+  <label class="np-lab" for="npInput">我的註記（選填）</label>
+  <textarea id="npInput" rows="2" placeholder="寫下你的想法⋯"></textarea>
+  <div class="np-actions"><button type="button" class="btn primary" id="npSave">儲存</button></div>
+</div>
+
+<!-- 收束到指定節點 -->
+<div class="overlay hidden" id="segLongOverlay">
+  <div class="sheet" style="width:min(460px,100%);">
+    <h2>這次的範圍有點長</h2>
+    <p class="sub" id="segLongSub"></p>
+    <div class="row">
+      <span class="spacer"></span>
+      <button class="btn ghost" id="segLongGo">仍然開始對話</button>
+      <button class="btn" id="segLongBack">回去調整範圍</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="pickOverlay">
+  <div class="sheet" style="width:min(440px,100%);">
+    <h2>收束到指定節點…</h2>
+    <p class="sub">選擇要把這條分支的摘要放進哪個節點。</p>
+    <div class="saved-docs" id="pickList"></div>
+    <div class="row">
+      <span class="spacer"></span>
+      <button class="btn ghost" data-close="pickOverlay">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 讀伴介紹 -->
+<div class="overlay hidden" id="aboutOverlay">
+  <div class="dialog help-dialog about-page" role="dialog" aria-modal="true" aria-labelledby="aboutHeading">
+    <div class="dlg-head">
+      <h2 id="aboutHeading">讀伴介紹</h2>
+      <button type="button" class="icon-btn dlg-close" data-close="aboutOverlay" aria-label="關閉">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="help-wrap">
+      <div class="help-main">
+        <section class="help-sec" data-title="讀伴是什麼">
+          <h3>讀伴是什麼</h3>
+          <p>讀伴是為人文社會領域經典閱讀設計的 AI 閱讀助教，副標是「非線性的深度閱讀夥伴」。</p>
+          <p>它不急著給你答案或摘要，而是放慢節奏，陪你形成並深化自己的觀察。</p>
+        </section>
+        <section class="help-sec" data-title="四個階段">
+          <h3>閱讀分成四個階段</h3>
+          <div class="stage-cards">
+            <div class="stage-card"><span class="sc-no">第一階段</span><span class="sc-name">導讀</span><span>參考讀伴整理的摘要、背景與心智圖，先掌握全文的樣貌。</span></div>
+            <div class="stage-card"><span class="sc-no">第二階段</span><span class="sc-name">閱讀</span><span>在乾淨的畫面裡專心讀文章，隨手記筆記、重點畫記，並用書籤標出這次讀到哪裡。</span></div>
+            <div class="stage-card"><span class="sc-no">第三階段</span><span class="sc-name">對話</span><span>選擇讀伴角色展開對話，隨時節外生枝開出分支，再收束回主幹。</span></div>
+            <div class="stage-card"><span class="sc-no">第四階段</span><span class="sc-name">回顧</span><span>讀伴整理你問過的問題、形成的想法與尚未解開的線頭，匯出成你的筆記。</span></div>
+          </div>
+        </section>
+        <section class="help-sec" data-title="幕後做了什麼">
+          <h3>讀伴在幕後做了什麼</h3>
+          <p>上傳文本後，讀伴會以 Hayden White 的四層架構（修辭結構、情節編排、形式論證、意識形態）拆解文本，再從文學、歷史、哲學、社會學四個角度整理全文。</p>
+          <p>這些分析不直接呈現給你，只作為對話的依據，避免預設結論影響你的判斷。</p>
+        </section>
+        <section class="help-sec" data-title="和一般 AI 的不同">
+          <h3>和一般 AI 有什麼不同</h3>
+          <ul>
+            <li>一般 AI 追求有效率地「讀完」；讀伴讓每次閱讀都是你自己走出來的路。</li>
+            <li>對話不是一條直線：可以從讀本或任何一則訊息開出分支，也能收束、重整整棵對話樹。</li>
+            <li>讀伴不替你下結論，而是以提問回應你的想法。</li>
+          </ul>
+        </section>
+        <div class="help-pager about-foot">
+          <span></span>
+          <button type="button" class="btn" id="btnAboutToHelp">功能說明 ›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 功能說明:左側目錄,右側一次一節 -->
+<div class="overlay hidden" id="featuresOverlay">
+  <div class="dialog help-dialog" role="dialog" aria-modal="true" aria-labelledby="helpHeading">
+    <div class="dlg-head">
+      <h2 id="helpHeading">功能說明</h2>
+      <button type="button" class="icon-btn dlg-close" data-close="featuresOverlay" aria-label="關閉">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="help-wrap">
+      <nav class="help-nav" id="helpNav" aria-label="說明目錄"></nav>
+      <div class="help-main">
+        <section class="help-sec" data-title="閱讀流程">
+          <h3>閱讀流程</h3>
+          <ol>
+            <li><strong>導讀</strong>：看讀伴整理的摘要、背景和心智圖。在這裡選取文字，也能存成筆記或重點畫記。準備好了按右下角的「開始閱讀」。</li>
+            <li><strong>閱讀</strong>：在乾淨的畫面裡讀全文。選取文字可存成筆記、重點畫記或簡易查詢；讀到一個段落，就用段落左邊的書籤標出讀到哪裡（用法見「閱讀書籤」），標好才能按「對話」。</li>
+            <li><strong>對話</strong>：和讀伴對話，想深入時就節外生枝。頂部「導讀｜閱讀｜對話｜回顧」可來回切換。</li>
+            <li><strong>回顧與匯出</strong>：對話告一段落時，按頂部的「回顧」看「閱讀回顧」；回顧視窗裡有「匯出筆記」，可匯出對話、筆記、重點畫記與導讀心智圖。</li>
+          </ol>
+        </section>
+        <section class="help-sec" data-title="閱讀書籤">
+          <h3>閱讀書籤</h3>
+          <p>長篇文本可以分段讀、分段和讀伴對話。書籤放在<strong>目錄與書籤</strong>裡，讀本的文字保持乾淨：</p>
+          <ul>
+            <li><strong>開啟</strong>：上方「≡」選單的「目錄與書籤」。目錄列出文章的小標題（沒有小標題的文本依段落分節），點節名可跳到該處。</li>
+            <li><strong>選範圍</strong>：按節名右邊的書籤，先點起點、再點終點，或按住書籤往上下拖曳；範圍內的書籤會塗滿，上方顯示範圍與字數。再按一次同一節的書籤取消。</li>
+            <li><strong>每次一段</strong>：每次的範圍要相連，各次之間彼此獨立，可以跳過沒讀的部分。範圍超過 5000 字會提醒縮小。</li>
+            <li><strong>對話</strong>：讀伴只談這一段，並參考你在這段的筆記與重點畫記；對話頁的讀本只顯示這一段。每一段在對話樹裡是一條主幹，點了可以回到那一段。</li>
+            <li><strong>接續</strong>：課程文本的進度會自動存到伺服器（「≡」選單也可以按「儲存進度」），登出後再登入，打開同一篇就能接著讀。</li>
+          </ul>
+        </section>
+        <section class="help-sec" data-title="標記讀本">
+          <h3>標記讀本</h3>
+          <p>在讀本選取文字會出現工具列。閱讀時有「存成筆記」「重點畫記」「簡易查詢」，開始對話後「引至對話」「節外生枝」也能用；導讀頁的文字只有「存成筆記」和「重點畫記」：</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>按鈕</th><th>作用</th><th>讀本上的標記</th></tr></thead>
+              <tbody>
+                <tr><td>引至對話</td><td>放進輸入框，跟你的話一起送出</td><td><span class="mk mk-quote">黑色底線</span></td></tr>
+                <tr><td class="t-branch">節外生枝</td><td>開一條新分支追問這段</td><td><span class="mk mk-branch">紅色底線</span></td></tr>
+                <tr><td class="t-note">存成筆記</td><td>存成筆記，並跳出小卡片可寫註記（閱讀頁在右側，導讀頁在文字旁）</td><td><span class="mk mk-note">綠色虛線</span></td></tr>
+                <tr><td>重點畫記</td><td>只做記號；選取已畫過的文字時，按鈕會變成「取消畫記」</td><td><span class="mk mk-hl">黃色底色</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>點已標記的文字：筆記會打開該筆記，分支會前往該分支，重點畫記會移除。各種標記的樣式說明，在頂列「≡」選單的最下面。</p>
+        </section>
+        <section class="help-sec" data-title="與讀伴對話">
+          <h3>與讀伴對話</h3>
+          <h4>讀伴角色</h4>
+          <ul>
+            <li><strong>引導者</strong>：順著你的思路提問。</li>
+            <li><strong>批判者</strong>：找出論點裡的矛盾與縫隙。</li>
+            <li><strong>探索者</strong>：提出你還沒想過的角度。</li>
+          </ul>
+          <h4>簡易查詢</h4>
+          <p>閱讀時：選取文字後按工具列的「簡易查詢」，右側會出現查詢欄，選取的文字已帶入；確認或修改後，按「查詢」（或 Enter）才會送出。對話時：按輸入框送出鈕上方的「簡易查詢」。</p>
+          <p>只做名詞解釋、翻譯、背景資料查詢，不談觀點，結果可存成筆記。切換階段時查詢欄會自動收起，要用時再按「簡易查詢」。</p>
+          <h4>訊息上的按鈕</h4>
+          <p>滑到訊息上會出現「節外生枝」「存成筆記」；最後一則自己的訊息可以「修改」。</p>
+        </section>
+        <section class="help-sec" data-title="對話樹">
+          <h3>對話樹</h3>
+          <ul>
+            <li><strong>主幹</strong>是主要對話，<strong>分支</strong>是延伸的追問。點節點就能切換。</li>
+            <li>分支裡按「收束回主幹」：讀伴把對話整理成摘要放回主幹；按「保留分支」：先留著不放回。</li>
+            <li>圓點：實心＝進行中，空心＝已保留或已收束。連線：實線＝進行中或已保留，虛線＝已收束。</li>
+            <li><strong>分段討論</strong>：每讀完一段範圍就開一條新主幹，各段的主幹和分支彼此獨立，不會混在一起。對話樹只展開目前這一段，其他段摺成一行（顯示則數與分支數），點一下就切過去；同一段在樹、路徑列和讀本上用同一個顏色。</li>
+            <li>想把前面段落的討論帶到現在這一段：在那一段旁的「⋯」選「引用這段的討論到目前對話」，會放進輸入框上方的引用，不必離開目前這一段。</li>
+            <li>節點旁的「⋯」：重新命名、收束到指定節點、升一層、設為主幹、刪除分支。</li>
+            <li>捷徑：雙擊改名、右鍵開選單、把節點拖到另一個節點底下（分支只能拖到同一段裡；要帶到別段，用「收束到指定節點」或上面的引用）。</li>
+          </ul>
+        </section>
+        <section class="help-sec" data-title="筆記">
+          <h3>筆記</h3>
+          <ul>
+            <li><strong>存成筆記</strong>：選取文字按「存成筆記」，會在右側跳出小卡片，可修改筆記內容、寫註記（選填），按「儲存」。要看全部筆記，按右上角的「筆記」圓形按鈕，會打開大的筆記欄。</li>
+            <li><strong>查看全部</strong>：閱讀頁右上角的「筆記」按鈕，會在右側滑出筆記欄；對話階段筆記在右欄。</li>
+            <li><strong>＋ 手寫筆記</strong>：自己寫一則，標題和內容一起填；之後可按「編輯」修改。</li>
+            <li><strong>來源</strong>：每則筆記左上角標示來自導讀、讀本、對話、手寫、查詢或閱讀回顧；上方按鈕可依來源篩選。</li>
+            <li><strong>排序</strong>：拖曳右上角的握把（或選取後按方向鍵），匯出時照此順序。</li>
+            <li><strong>展開</strong>：點筆記可看全文，並使用「來源」「重新命名／編輯」「刪除」。</li>
+          </ul>
+        </section>
+        <section class="help-sec" data-title="調整版面">
+          <h3>調整版面</h3>
+          <h4>頂列</h4>
+          <ul>
+            <li><strong>左邊</strong>：文本名稱（點開可更換文本或繼續先前的文本），旁邊的「≡」是讀本功能：搜尋、字級 A− / A+、目錄、看原檔，最下面是標記樣式說明。「目錄」展開後，和閱讀頁左側的目錄一樣是編號步驟，點節名就跳到該處；閱讀階段的目錄固定在左側卡片，選單裡不再重複。</li>
+            <li><strong>中間</strong>：導讀｜閱讀｜對話｜回顧，點了就切換階段。</li>
+            <li><strong>右邊</strong>：「⋯」有閱讀回顧、匯出、讀伴介紹、功能說明與登出。</li>
+          </ul>
+          <h4>對話階段</h4>
+          <ul>
+            <li>拖曳欄間的分隔線調整寬度，雙擊恢復預設。</li>
+            <li>每欄標題右側可收合，點直排標籤展開。</li>
+            <li>右欄「對話樹」「筆記」可點標題折疊，拖中間橫線調整高度。</li>
+          </ul>
+          <h4>手機</h4>
+          <ul>
+            <li>手機沿用兩個畫面：導讀、對話；三欄上下排列，用頂列下方的「讀本｜對話｜筆記」切換列跳到想看的那一欄。</li>
+          </ul>
+          <p>這些設定會記在瀏覽器裡。</p>
+        </section>
+        <section class="help-sec" data-title="回顧與匯出">
+          <h3>回顧與匯出</h3>
+          <h4>閱讀回顧</h4>
+          <p>讀伴整理你問過的問題、長出的想法與還沒解開的線頭，可存成筆記。</p>
+          <h4>匯出筆記</h4>
+          <p>先勾選內容，再點格式：</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>格式</th><th>特點</th></tr></thead>
+              <tbody>
+                <tr><td>PDF</td><td>保留標記，適合列印繳交</td></tr>
+                <tr><td>Word</td><td>附 AI 摘要，可再編輯</td></tr>
+                <tr><td>網頁 .html</td><td>保留標記，用瀏覽器開啟</td></tr>
+                <tr><td>純文字 .md</td><td>方便貼到其他筆記軟體；不含導讀心智圖</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <div class="help-pager">
+          <button type="button" class="btn" id="btnHelpPrev">‹ 上一節</button>
+          <button type="button" class="btn" id="btnHelpNext">下一節 ›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 心智圖放大 -->
+<div class="overlay hidden" id="mapOverlay">
+  <div class="sheet map-sheet">
+    <h2>心智圖（AI 生成）</h2>
+    <div class="map-zoom"><svg id="briefMapBig" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="row">
+      <span class="spacer"></span>
+      <button class="btn primary" data-close="mapOverlay">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- 課程版:登入與文本清單(整頁) -->
+<div class="course-gate hidden" id="courseGate">
+  <div class="cg-inner">
+    <!-- 入口選擇 -->
+    <div class="cg-card" id="cgChoose">
+      <svg class="brand-logo entry-logo" viewBox="0 0 640 620" aria-hidden="true"><path class="bl-cover" d="M0,108 L32,92 L32,80 C120,20 250,0 338,42 C420,-5 520,0 597,30 L597,50 L630,62 L630,528 C540,520 420,535 338,605 C250,545 120,530 10,595 L0,592 Z"/><path class="bl-page" d="M52,78 C130,30 250,20 328,58 L328,520 C250,480 140,475 52,528 Z"/><path class="bl-page" d="M348,58 C420,15 520,15 580,40 L580,470 C500,450 410,460 348,515 Z"/><g class="bl-ink"><path d="M80,180 C150,140 240,135 310,165"/><path d="M80,255 C150,215 240,210 310,240"/><path d="M80,330 C150,290 240,285 310,315"/><path d="M160,385 C210,365 260,370 310,400"/><path d="M362,165 C395,138 420,140 440,165 C456,186 466,225 484,240"/><path d="M362,245 C398,220 445,215 484,240"/><path d="M362,325 C398,302 445,285 484,240"/><path d="M362,400 C392,374 412,368 430,345 C452,318 470,265 484,240"/><path d="M484,240 C512,246 535,246 556,252"/></g></svg>
+      <h2>讀伴・樹狀閱讀</h2>
+      <p class="cg-intro">讀伴是一位專為人文社會領域經典閱讀而打造的 AI 閱讀助教。它不會直接把想法給你，而是以專業分析後的閱讀地圖來回應你的想法——引導你讀得更深入、擴展視野、深化觀點、整理思緒。</p>
+      <div class="cg-entries">
+        <button class="cg-entry" id="btnEntryGuest">
+          <span class="ce-icon">📄</span>
+          <span class="ce-title">免費測試</span>
+          <span class="ce-desc">我想上傳自己的文本，直接開始閱讀</span>
+        </button>
+        <button class="cg-entry" id="btnEntryCourse">
+          <span class="ce-icon">🎓</span>
+          <span class="ce-title">課程學生登入</span>
+          <span class="ce-desc">用 Email 帳號登入，閱讀課堂指定的文本（第一次可用老師給的邀請碼加入）</span>
+        </button>
+        <button class="cg-entry cg-entry-teacher" id="btnEntryTeacher">
+          <span class="ce-icon">🎒</span>
+          <span class="ce-title">課程教師登入</span>
+          <span class="ce-desc">我要管理課程、上傳指定文本、查看學生的閱讀狀況</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 教師密碼 -->
+    <div class="cg-card hidden" id="cgTeacher">
+      <svg class="brand-logo entry-logo" viewBox="0 0 640 620" aria-hidden="true"><path class="bl-cover" d="M0,108 L32,92 L32,80 C120,20 250,0 338,42 C420,-5 520,0 597,30 L597,50 L630,62 L630,528 C540,520 420,535 338,605 C250,545 120,530 10,595 L0,592 Z"/><path class="bl-page" d="M52,78 C130,30 250,20 328,58 L328,520 C250,480 140,475 52,528 Z"/><path class="bl-page" d="M348,58 C420,15 520,15 580,40 L580,470 C500,450 410,460 348,515 Z"/><g class="bl-ink"><path d="M80,180 C150,140 240,135 310,165"/><path d="M80,255 C150,215 240,210 310,240"/><path d="M80,330 C150,290 240,285 310,315"/><path d="M160,385 C210,365 260,370 310,400"/><path d="M362,165 C395,138 420,140 440,165 C456,186 466,225 484,240"/><path d="M362,245 C398,220 445,215 484,240"/><path d="M362,325 C398,302 445,285 484,240"/><path d="M362,400 C392,374 412,368 430,345 C452,318 470,265 484,240"/><path d="M484,240 C512,246 535,246 556,252"/></g></svg>
+      <h2>教師後台</h2>
+      <p class="cg-hint">請輸入教師帳號與密碼。登入後可建立課程、上傳指定文本、查看學生的閱讀與對話狀況。帳號由系統管理者建立。</p>
+      <form method="post" action="teacher.php">
+        <input type="hidden" name="auth" value="login">
+        <label class="f-label">教師帳號</label>
+        <input type="text" name="login" id="cgTeacherLogin" placeholder="教師帳號(email)" autocomplete="username" required>
+        <label class="f-label" style="margin-top:10px;">密碼</label>
+        <input type="password" name="pwd" id="cgTeacherPwd" placeholder="密碼" autocomplete="current-password" required>
+        <button type="submit" class="btn verm cg-go" style="margin-top:14px;">進入教師後台</button>
+      </form>
+      <button class="btn ghost small cg-back" id="btnCgBackT">← 回上一步</button>
+    </div>
+
+    <!-- 學生登入(email + 密碼;瀏覽器可記住密碼) -->
+    <div class="cg-card hidden" id="cgLogin">
+      <svg class="brand-logo entry-logo" viewBox="0 0 640 620" aria-hidden="true"><path class="bl-cover" d="M0,108 L32,92 L32,80 C120,20 250,0 338,42 C420,-5 520,0 597,30 L597,50 L630,62 L630,528 C540,520 420,535 338,605 C250,545 120,530 10,595 L0,592 Z"/><path class="bl-page" d="M52,78 C130,30 250,20 328,58 L328,520 C250,480 140,475 52,528 Z"/><path class="bl-page" d="M348,58 C420,15 520,15 580,40 L580,470 C500,450 410,460 348,515 Z"/><g class="bl-ink"><path d="M80,180 C150,140 240,135 310,165"/><path d="M80,255 C150,215 240,210 310,240"/><path d="M80,330 C150,290 240,285 310,315"/><path d="M160,385 C210,365 260,370 310,400"/><path d="M362,165 C395,138 420,140 440,165 C456,186 466,225 484,240"/><path d="M362,245 C398,220 445,215 484,240"/><path d="M362,325 C398,302 445,285 484,240"/><path d="M362,400 C392,374 412,368 430,345 C452,318 470,265 484,240"/><path d="M484,240 C512,246 535,246 556,252"/></g></svg>
+      <h2>讀伴・樹狀閱讀</h2>
+      <p class="cg-intro">讀伴是一位專為人文社會領域經典閱讀而打造的 AI 閱讀助教。它不會直接把想法給你，而是以專業分析後的閱讀地圖來回應你的想法——引導你讀得更深入、擴展視野、深化觀點、整理思緒。</p>
+      <form id="cgLoginForm" autocomplete="on">
+        <label class="f-label">Email</label>
+        <input type="email" id="cgEmail" name="email" placeholder="你的 Email" autocomplete="username" required>
+        <label class="f-label">密碼</label>
+        <input type="password" id="cgPwd" name="password" placeholder="密碼" autocomplete="current-password" required>
+        <div class="cg-err" id="cgErr"></div>
+        <button type="submit" class="btn verm cg-go" id="btnCgLogin">登入</button>
+      </form>
+      <div class="cg-alt">第一次登入新課程嗎？<a href="#" id="lnkCgJoin">請輸入課程教師所提供的邀請碼</a></div>
+      <p class="cg-hint cg-small">忘記密碼？請聯絡授課老師，在教師後台幫你重設。</p>
+      <button class="btn ghost small cg-back" id="btnCgBack">← 回上一步</button>
+    </div>
+
+    <!-- 以邀請碼加入課程(未登入時一併登入或建立帳號) -->
+    <div class="cg-card hidden" id="cgJoin">
+      <svg class="brand-logo entry-logo" viewBox="0 0 640 620" aria-hidden="true"><path class="bl-cover" d="M0,108 L32,92 L32,80 C120,20 250,0 338,42 C420,-5 520,0 597,30 L597,50 L630,62 L630,528 C540,520 420,535 338,605 C250,545 120,530 10,595 L0,592 Z"/><path class="bl-page" d="M52,78 C130,30 250,20 328,58 L328,520 C250,480 140,475 52,528 Z"/><path class="bl-page" d="M348,58 C420,15 520,15 580,40 L580,470 C500,450 410,460 348,515 Z"/><g class="bl-ink"><path d="M80,180 C150,140 240,135 310,165"/><path d="M80,255 C150,215 240,210 310,240"/><path d="M80,330 C150,290 240,285 310,315"/><path d="M160,385 C210,365 260,370 310,400"/><path d="M362,165 C395,138 420,140 440,165 C456,186 466,225 484,240"/><path d="M362,245 C398,220 445,215 484,240"/><path d="M362,325 C398,302 445,285 484,240"/><path d="M362,400 C392,374 412,368 430,345 C452,318 470,265 484,240"/><path d="M484,240 C512,246 535,246 556,252"/></g></svg>
+      <h2>加入課程</h2>
+      <form id="cgJoinForm" autocomplete="on">
+        <p class="cg-hint" id="cgJHint">請輸入課程教師所提供的邀請碼，並填寫你的資料。</p>
+        <label class="f-label">課程邀請碼</label>
+        <input type="text" id="cgCode" placeholder="例如:AB3K7Q" style="text-transform:uppercase;letter-spacing:4px;text-align:center;" autocomplete="off" required>
+        <div id="cgJAcct">
+          <label class="f-label">Email（之後用它登入）</label>
+          <input type="email" id="cgJEmail" name="email" placeholder="你的 Email" autocomplete="username">
+          <label class="f-label">密碼（第一次使用請自行設定，至少 8 個字元；已有帳號請輸入原密碼）</label>
+          <input type="password" id="cgJPwd" name="password" placeholder="密碼" autocomplete="current-password">
+        </div>
+        <label class="f-label">學號</label>
+        <input type="text" id="cgSid" placeholder="例如:111012345" autocomplete="off" required>
+        <label class="f-label">想讓讀伴怎麼稱呼你呢?(不必是真名)</label>
+        <input type="text" id="cgName" placeholder="你的名字或暱稱" maxlength="20" autocomplete="nickname">
+        <div class="cg-err" id="cgJErr"></div>
+        <button type="submit" class="btn verm cg-go" id="btnCgJoin">加入課程</button>
+      </form>
+      <button class="btn ghost small cg-back" id="btnCgJoinBack">← 回上一步</button>
+    </div>
+
+    <!-- 我的課程 -->
+    <div class="cg-card cg-wide hidden" id="cgCourses">
+      <div class="cg-head">
+        <div>
+          <div class="cg-course">我的課程</div>
+          <div class="cg-who" id="cgMe"></div>
+        </div>
+        <span class="spacer"></span>
+        <button class="btn ghost small" id="btnCgLogout2">登出</button>
+      </div>
+      <div class="cg-list" id="cgCourseList"></div>
+      <div class="cg-acts">
+        <button class="btn small" id="btnCgJoinMore">＋ 加入新課程</button>
+        <button class="btn small ghost" id="btnCgPwdOpen">修改密碼</button>
+      </div>
+      <button class="btn ghost small cg-back hidden" id="btnCgCoursesBack">← 回上一步</button>
+    </div>
+
+    <!-- 修改密碼(教師重設的臨時密碼登入後必須改) -->
+    <div class="cg-card hidden" id="cgPwdCard">
+      <svg class="brand-logo entry-logo" viewBox="0 0 640 620" aria-hidden="true"><path class="bl-cover" d="M0,108 L32,92 L32,80 C120,20 250,0 338,42 C420,-5 520,0 597,30 L597,50 L630,62 L630,528 C540,520 420,535 338,605 C250,545 120,530 10,595 L0,592 Z"/><path class="bl-page" d="M52,78 C130,30 250,20 328,58 L328,520 C250,480 140,475 52,528 Z"/><path class="bl-page" d="M348,58 C420,15 520,15 580,40 L580,470 C500,450 410,460 348,515 Z"/><g class="bl-ink"><path d="M80,180 C150,140 240,135 310,165"/><path d="M80,255 C150,215 240,210 310,240"/><path d="M80,330 C150,290 240,285 310,315"/><path d="M160,385 C210,365 260,370 310,400"/><path d="M362,165 C395,138 420,140 440,165 C456,186 466,225 484,240"/><path d="M362,245 C398,220 445,215 484,240"/><path d="M362,325 C398,302 445,285 484,240"/><path d="M362,400 C392,374 412,368 430,345 C452,318 470,265 484,240"/><path d="M484,240 C512,246 535,246 556,252"/></g></svg>
+      <h2>修改密碼</h2>
+      <p class="cg-hint" id="cgPwdHint">請輸入目前的密碼，再設定新密碼（至少 8 個字元）。</p>
+      <form id="cgPwdForm" autocomplete="on">
+        <input type="email" id="cgPUser" name="email" autocomplete="username" style="display:none">
+        <label class="f-label">目前的密碼</label>
+        <input type="password" id="cgPCur" autocomplete="current-password" required>
+        <label class="f-label">新密碼</label>
+        <input type="password" id="cgP1" autocomplete="new-password" required>
+        <label class="f-label">再輸入一次新密碼</label>
+        <input type="password" id="cgP2" autocomplete="new-password" required>
+        <div class="cg-err" id="cgPErr"></div>
+        <button type="submit" class="btn verm cg-go">儲存新密碼</button>
+      </form>
+      <button class="btn ghost small cg-back" id="btnCgPwdBack">← 回上一步</button>
+    </div>
+
+    <!-- 文本清單 -->
+    <div class="cg-card cg-wide hidden" id="cgTexts">
+      <div class="cg-head">
+        <div>
+          <div class="cg-course" id="cgCourseName"></div>
+          <div class="cg-who" id="cgWho"></div>
+        </div>
+        <span class="spacer"></span>
+        <button class="btn ghost small" id="btnCgMyCourses">我的課程</button>
+        <button class="btn ghost small" id="btnCgLogout">登出</button>
+      </div>
+      <p class="cg-hint">選擇一篇文本開始閱讀。你的閱讀進度會保存在這台裝置上，隨時可以回來繼續。</p>
+      <div class="cg-section-title">老師指定的文本</div>
+      <div class="cg-list" id="cgList"></div>
+      <p class="cg-hint" style="margin-top:18px">想讀課堂以外的文章，請登出後改用「免費測試」。</p>
+      <button class="btn ghost small cg-back hidden" id="btnCgTextsBack">← 回上一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- 我的書架:點讀本標題(更換文本)後的主畫面,列出這台裝置上讀過的文本 -->
+<div class="shelf hidden" id="shelfView" role="dialog" aria-modal="true" aria-labelledby="shelfHeading">
+  <header class="shelf-top">
+    <div class="shelf-brand">
+      <svg class="brand-logo" viewBox="0 0 640 620" aria-hidden="true"><path class="bl-cover" d="M0,108 L32,92 L32,80 C120,20 250,0 338,42 C420,-5 520,0 597,30 L597,50 L630,62 L630,528 C540,520 420,535 338,605 C250,545 120,530 10,595 L0,592 Z"/><path class="bl-page" d="M52,78 C130,30 250,20 328,58 L328,520 C250,480 140,475 52,528 Z"/><path class="bl-page" d="M348,58 C420,15 520,15 580,40 L580,470 C500,450 410,460 348,515 Z"/><g class="bl-ink"><path d="M80,180 C150,140 240,135 310,165"/><path d="M80,255 C150,215 240,210 310,240"/><path d="M80,330 C150,290 240,285 310,315"/><path d="M160,385 C210,365 260,370 310,400"/><path d="M362,165 C395,138 420,140 440,165 C456,186 466,225 484,240"/><path d="M362,245 C398,220 445,215 484,240"/><path d="M362,325 C398,302 445,285 484,240"/><path d="M362,400 C392,374 412,368 430,345 C452,318 470,265 484,240"/><path d="M484,240 C512,246 535,246 556,252"/></g></svg>
+      <span class="brand-name">讀伴</span>
+    </div>
+    <button type="button" class="btn ghost" id="btnShelfBack">回到閱讀</button>
+  </header>
+  <div class="shelf-body">
+    <div class="shelf-inner">
+      <div class="shelf-hero">
+        <h2 id="shelfHeading">我的書架</h2>
+        <p class="shelf-sub" id="shelfSub"></p>
+      </div>
+      <div class="shelf-tools">
+        <svg class="shelf-search-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input type="search" id="shelfSearch" placeholder="搜尋書名" aria-label="搜尋書名" autocomplete="off">
+      </div>
+      <div class="shelf-grid" id="shelfGrid"></div>
+      <p class="shelf-note">閱讀紀錄只存在這台裝置的瀏覽器裡；換電腦前，記得用「⋯」選單的「匯出筆記」備份。</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- 選擇文本／更換文本 -->
+<div class="overlay hidden" id="uploadOverlay">
+  <div class="dialog up-dialog" role="dialog" aria-modal="true" aria-labelledby="upHeading">
+    <div class="dlg-head">
+      <div class="dlg-titles">
+        <h2 id="upHeading">更換文本</h2>
+        <span class="dlg-sub" id="upSub"></span>
+      </div>
+      <button type="button" class="btn ghost" id="btnUpExit" title="離開並回到首頁">登出</button>
+      <button type="button" class="icon-btn dlg-close" id="btnUpClose" aria-label="關閉">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="dlg-body">
+      <div class="up-hero" id="upHero">
+        <p>讀伴是一位專為人文社會領域經典閱讀而打造的 AI 閱讀助教。它不會直接把想法給你，而是以專業分析後的閱讀地圖來回應你的想法——引導你讀得更深入、擴展視野、深化觀點、整理思緒。</p>
+      </div>
+
+      <section class="up-sec">
+        <div class="up-sec-head">
+          <h3>開始新文本</h3>
+          <div class="seg seg-sm" id="upModeSeg" role="group" aria-label="新增方式">
+            <button type="button" data-mode="upload" class="on">上傳檔案</button>
+            <button type="button" data-mode="paste">貼上文字</button>
+          </div>
+        </div>
+
+        <div class="dropzone" id="upModeUpload">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <span class="dz-main">把檔案拖到這裡，或</span>
+          <input type="file" id="upFile" accept=".txt,.md,.docx,.pdf" style="display:none;">
+          <button type="button" class="btn tall" id="btnUploadFile">選擇檔案</button>
+          <span class="dz-note">支援 .txt、.md、.docx、.pdf</span>
+          <span class="dz-status" id="upFileStatus"></span>
+          <span class="dz-sample">沒有文本嗎？<button type="button" class="link-btn" id="btnSample">試試範例《荷塘月色》</button></span>
+        </div>
+
+        <div class="paste-box" id="upModePaste" hidden>
+          <label for="upTitle">標題</label>
+          <input type="text" id="upTitle" placeholder="例如：荷塘月色">
+          <label for="upText">內文</label>
+          <textarea id="upText" rows="6" placeholder="貼上全文，以空行分段"></textarea>
+          <span class="up-count" id="upCount"></span>
+        </div>
+
+        <label class="check-block">
+          <input type="checkbox" id="upReflow">
+          <span title="修正 PDF 文字的斷行（詩歌請勿勾選）">自動重排段落</span>
+        </label>
+
+        <div class="up-terms">
+          <span class="up-limit" id="upLimit"><span id="upLimitText">免費試用上限：每篇 10,000 字、檔案 1 MB 以內、每篇最多對話 50 輪。</span></span>
+          <button type="button" class="link-btn" id="btnTerms" aria-expanded="false">查看資料保存與使用規範</button>
+          <span class="up-privacy" id="upTermsText" hidden>免費試用是讀伴額外提供的服務，並非無條件開放：上傳的文本、對話內容與用量會保存在伺服器 30 天，供系統管理者檢視；若發現濫用（例如大量上傳、與閱讀無關的使用），我們可能限制或停止該來源的使用；整體用量過高時，也可能暫停免費試用服務。</span>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="dlg-foot">
+      <span class="spacer"></span>
+      <button type="button" class="btn ghost" id="btnBackEntry" style="display:none;" title="回到身分選擇（免費測試／課程學生／課程教師）">← 回上一步</button>
+      <button type="button" class="btn tall" id="btnCancelUpload" style="display:none;">取消</button>
+      <button type="button" class="btn primary tall" id="btnStart">開始導讀</button>
+    </div>
+  </div>
+</div>
+
+<!-- 匯出 -->
+<div class="overlay hidden" id="exportOverlay">
+  <div class="dialog export-dialog" role="dialog" aria-modal="true" aria-labelledby="exportHeading">
+    <div class="dlg-head">
+      <div class="dlg-titles">
+        <h2 id="exportHeading">匯出筆記</h2>
+        <span class="dlg-sub">先勾選要放進去的內容，再點一種檔案格式。</span>
+      </div>
+    </div>
+    <div class="dlg-body">
+      <section class="ex-sec">
+        <h3>1. 選擇內容</h3>
+        <div class="ex-checks">
+          <label class="check-row"><input type="checkbox" id="exMain" checked>主幹對話</label>
+          <label class="check-row"><input type="checkbox" id="exBranches" checked>分支對話</label>
+          <label class="check-row"><input type="checkbox" id="exNotes" checked>筆記</label>
+          <label class="check-row"><input type="checkbox" id="exHl" checked>重點畫記片段</label>
+          <label class="check-row"><input type="checkbox" id="exText" checked>附上全文</label>
+          <label class="check-row" id="exMapRow"><input type="checkbox" id="exMap" checked>導讀心智圖<span class="ex-note" id="exMapNote"></span></label>
+        </div>
+      </section>
+      <section class="ex-sec">
+        <h3>2. 選擇格式</h3>
+        <div class="ex-formats">
+          <button type="button" class="ex-fmt" id="btnDoExportPdf">
+            <span class="ef-name">PDF</span>
+            <span class="ef-desc">保留標記，適合列印繳交</span>
+          </button>
+          <button type="button" class="ex-fmt" id="btnDoExportWord">
+            <span class="ef-name">Word</span>
+            <span class="ef-desc">附 AI 摘要，可再編輯</span>
+          </button>
+          <button type="button" class="ex-fmt" id="btnDoExportHtml">
+            <span class="ef-name">網頁 .html</span>
+            <span class="ef-desc">保留標記，用瀏覽器開啟</span>
+          </button>
+          <button type="button" class="ex-fmt" id="btnDoExport">
+            <span class="ef-name">純文字 .md</span>
+            <span class="ef-desc">方便貼到其他筆記軟體，不含心智圖</span>
+          </button>
+        </div>
+      </section>
+    </div>
+    <div class="dlg-foot">
+      <span class="spacer"></span>
+      <button type="button" class="btn tall" data-close="exportOverlay">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 閱讀回顧 -->
+<div class="overlay hidden" id="summaryOverlay">
+  <div class="sheet">
+    <h2>閱讀回顧</h2>
+    <p class="sub">讀伴整理你問過的問題、長出的想法與還沒解開的線頭。</p>
+    <div class="copy-wrap">
+      <div class="summary-body" id="summaryBody">整理中⋯</div>
+      <button type="button" class="copy-ico" id="btnSummaryCopy" disabled aria-label="複製" title="複製"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>
+    </div>
+    <div class="row">
+      <span class="spacer"></span>
+      <button class="btn" id="btnSummaryExport">匯出筆記</button>
+      <button class="btn" id="btnSummaryToNote" disabled>存成筆記</button>
+      <button class="btn primary" data-close="summaryOverlay">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- 簡易查詢浮動視窗 -->
+<div class="lookup-panel" id="lookupPanel">
+  <div class="lk-head">
+    <span class="lk-title">簡易查詢</span>
+    <span class="spacer"></span>
+    <button class="lk-close" id="btnLookupClose" title="關閉" aria-label="關閉">✕</button>
+  </div>
+  <div class="lk-note">只做名詞解釋、翻譯、背景資料查詢，不談觀點。</div>
+  <div class="lk-q" id="lookupQ" hidden></div>
+  <div class="lk-body">
+    <div class="lk-answer" id="lookupAnswer" style="display:none;"></div>
+    <div class="lk-tools" id="lookupTools" style="display:none;">
+      <button type="button" class="copy-ico" id="btnLookupCopy" aria-label="複製" title="複製"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>
+      <button class="btn small ghost" id="btnLookupNote">存成筆記</button>
+    </div>
+  </div>
+  <div class="lk-input-row">
+    <input type="text" id="lookupInput" placeholder="例如：通感是什麼？">
+    <button class="btn primary small" id="btnLookupGo">查詢</button>
+  </div>
+</div>
+
+<!-- 底部單位資訊 banner(浮動式:滑鼠靠近畫面底部才浮出) -->
+<div class="site-banner" id="siteBanner">
+  <div class="sb-inner">
+    <div class="sb-links">
+      <a href="https://forms.gle/hwzbmUdPU2TDRnGt6" target="_blank" rel="noopener">意見回饋:填寫使用問卷</a>
+      <a href="mailto:aifr.general@gmail.com">聯絡我們:aifr.general@gmail.com</a>
+    </div>
+    <div class="sb-logos">
+      <img src="assets/img/NTHU_LOGO.png" alt="國立清華大學">
+      <img src="assets/img/LOGO.png" alt="人文社會 AI 應用與發展研究中心" class="sb-hai">
+      <div class="sb-org">
+        <span>國立清華大學 人文社會 AI 應用與發展研究中心</span>
+        <span>國立清華大學 AIFR 人工智慧與基礎研究群</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="assets/app.js?v=20261111j"></script>
+<script>
+/* 手機版行為只在手機載入,條件與 mobile.css 的 media 相同;手機轉成直向才符合時也會補載 */
+(function () {
+  const mq = window.matchMedia('(max-width: 760px) and (pointer: coarse)');
+  let loaded = false;
+  const load = () => {
+    if (loaded || !mq.matches) return;
+    loaded = true;
+    const s = document.createElement('script');
+    s.src = 'assets/mobile.js?v=20261107n';
+    document.body.appendChild(s);
+  };
+  if (mq.addEventListener) mq.addEventListener('change', load); else mq.addListener(load);
+  load();
+})();
+</script>
+<script src="assets/pwd-eye.js?v=20261107b"></script>
+</body>
+</html>

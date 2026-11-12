@@ -1,0 +1,21 @@
+services:
+  dupan:
+    build: ./
+    image: dupan-web:latest
+    container_name: hssai-deepreading
+    restart: unless-stopped
+    # 只綁在內網介面,對外一律經 nginx-node 反向代理
+    ports:
+      - "10.0.0.101:3060:80"
+    volumes:
+      # 專案原始碼(可寫:data/ 是其子目錄,需由 PHP 寫入)
+      # 注意:不可改成 :ro,也不可另外掛載 data/——
+      # 唯讀層無法建立子掛載點,容器會起不來(2026/08 部署時已驗證)
+      - ../:/var/www/html
+    environment:
+      - TZ=Asia/Taipei
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

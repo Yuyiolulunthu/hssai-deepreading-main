@@ -1,0 +1,1795 @@
+/* ============================================================
+   讀伴・樹狀閱讀 — 樣式(2026-10 改版:依「讀伴介面改版說明」與互動示意稿)
+   全站只用一個強調色(logo 的酒紅);其他顏色只用來區分標記種類
+   ============================================================ */
+
+:root {
+  /* 視覺規格 */
+  --accent:     #7A2331;   /* 主色:選中的分頁、主要按鈕、心智圖中心、品牌字 */
+  --accent-dk:  #5E1A26;
+  --gold:       #B9822F;   /* 點綴金:只用在品牌旁的細分隔線 */
+  --bg:         #FBFAF7;   /* 頁面底色 */
+  --panel:      #FFFFFF;   /* 各欄、卡片 */
+  --line:       #E7E2DC;   /* 分隔線、框線 */
+  --line-soft:  #F1EDE8;
+  --sub:        #F1EDE8;   /* 次要底色:分段控制底、使用者訊息、選中的節點 */
+  --tip:        #F6F1EC;
+  --ink:        #1F1B1A;   /* 主文字 */
+  --ink-2:      #3D3735;
+  --ink-soft:   #6B6461;   /* 次文字 */
+  --ink-faint:  #9A928E;
+  --branch:     #B3412F;   /* 分支紅 */
+  --note:       #2E7D5B;   /* 筆記綠 */
+  --hl:         #F6E7A6;   /* 螢光黃 */
+  --sel:        #D6E4F3;   /* 選取藍 */
+
+  /* 舊變數名(課程入口等頁面仍在用)對應到新配色 */
+  --paper:      var(--panel);
+  --paper-2:    var(--bg);
+  --vermilion:  var(--accent);
+  --verm-wash:  #F5ECEB;
+  --verm-line:  #E2CBC6;
+  --jade-wash:  #EAF3EE;
+  --sand-wash:  var(--tip);
+
+  --shadow: 0 1px 3px rgba(31,27,26,.06);
+  --pop-shadow: 0 8px 24px rgba(31,27,26,.12);
+  --radius: 10px;
+  --banner-h: 0px;           /* 底部 banner 為浮動式,不佔版面;觸控裝置常駐時才有高度 */
+  --serif: "Noto Serif TC", "Songti TC", serif;
+  --sans:  "Noto Sans TC", "PingFang TC", sans-serif;
+  --topbar-h: 57px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+  /* 頂列 + 工作區填滿視窗;頂列換行變高時工作區自動縮 */
+  display: flex; flex-direction: column;
+  height: 100vh; height: 100dvh;
+  padding-bottom: var(--banner-h);
+}
+button { font-family: inherit; cursor: pointer; color: inherit; }
+::selection { background: var(--sel); }
+.hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- 共用按鈕 ---------- */
+.btn {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 8px;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn:hover { background: var(--bg); border-color: #D6CFC7; }
+.btn.tall { height: 40px; padding: 0 16px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+.btn.primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); }
+.btn.verm { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.verm:hover { background: var(--accent-dk); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
+.btn.ghost:hover { background: var(--bg); }
+.btn.small { height: 30px; padding: 0 10px; font-size: 12px; border-radius: 6px; }
+.btn.block { width: 100%; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.icon-btn {
+  width: 32px; height: 32px; flex: none;
+  border: 0; border-radius: 6px; background: none;
+  color: var(--ink-soft);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { background: var(--bg); color: var(--ink); }
+.icon-btn.boxed { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink-2); }
+.icon-btn.boxed:hover { background: var(--bg); }
+
+.mini-btn {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 28px; padding: 0 8px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--panel);
+  font-size: 12px; color: var(--ink-2);
+  white-space: nowrap;
+}
+.mini-btn.tall { height: 32px; padding: 0 12px; font-size: 13px; }
+.mini-btn:hover { background: var(--bg); }
+.mini-btn.branch-btn { border-color: var(--branch); color: var(--branch); font-weight: 500; }
+.mini-btn.branch-btn:hover { background: #FBF1EF; }
+
+.sq-btn {
+  width: 32px; height: 32px; flex: none;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--panel); font-size: 12px; color: var(--ink);
+}
+.sq-btn.sq-big { font-size: 14px; }
+.sq-btn:hover { background: var(--bg); }
+
+.link-btn {
+  border: 0; background: none; padding: 0;
+  font-size: 13px; color: var(--ink-2);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.link-btn:hover { color: var(--accent); }
+
+/* 分段控制(導讀|對話、讀伴角色、上傳|貼上) */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--sub); border-radius: 9px; }
+.seg button {
+  height: 32px; padding: 0 20px;
+  border: 0; border-radius: 7px; background: transparent;
+  color: var(--ink-soft); font-size: 14px; white-space: nowrap;
+}
+.seg button:hover { color: var(--ink); }
+.seg button.on {
+  background: var(--panel); color: var(--accent); font-weight: 700;
+  box-shadow: 0 1px 2px rgba(31,27,26,.10);
+}
+.seg.seg-sm { border-radius: 8px; }
+.seg.seg-sm button { height: 30px; padding: 0 12px; font-size: 13px; border-radius: 6px; }
+.seg.seg-sm button.on { color: var(--ink); font-weight: 500; }
+
+/* 浮出選單(頂列「⋯」) */
+.pop-menu {
+  position: absolute; z-index: 40;
+  background: var(--panel);
+  border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: var(--pop-shadow);
+  padding: 6px;
+  display: flex; flex-direction: column;
+}
+.pop-menu button {
+  text-align: left; padding: 10px 12px;
+  border: 0; background: none; border-radius: 6px;
+  font-size: 14px; color: var(--ink);
+}
+.pop-menu button:hover { background: var(--bg); }
+.pop-menu button.muted { color: var(--ink-soft); }
+.pop-menu button.danger { color: var(--branch); }
+.pop-menu button:disabled { color: var(--ink-faint); cursor: not-allowed; background: none; }
+.menu-sep { height: 1px; background: var(--line); margin: 4px 0; }
+
+/* ---------- 頂列 ---------- */
+.topbar {
+  min-height: var(--topbar-h);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+  padding: 8px 20px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  position: relative; z-index: 30;
+}
+.tb-side { display: flex; align-items: center; flex: 1 1 200px; min-width: 0; }
+.tb-right { justify-content: flex-end; gap: 6px; position: relative; }
+.brand { gap: 10px; user-select: none; }
+.brand-logo { width: 36px; height: 34px; flex-shrink: 0; display: block; }
+.brand-logo .bl-cover { fill: var(--accent); }
+.brand-logo .bl-page  { fill: #fff; }
+.brand-logo .bl-ink   { fill: none; stroke: var(--gold); stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; }
+.brand-name {
+  font-family: var(--serif); font-weight: 900; font-size: 23px;
+  color: var(--accent); letter-spacing: 2px; line-height: 1;
+  white-space: nowrap;
+}
+.brand-rule { width: 1px; height: 18px; background: var(--gold); flex: none; }
+.brand-tag {
+  font-family: var(--serif); font-size: 12px; color: #5E4A4A;
+  letter-spacing: 2px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+.top-menu { top: 44px; right: 0; width: 200px; }
+
+/* 電腦版:讀本的控制項列(JS 從左欄搬來;body.rc-top 時左欄的 col-head 與底部圖例列不再顯示) */
+.tb-left { display: flex; align-items: center; gap: 16px; flex: 1 1 auto; min-width: 0; }
+.tb-reader { display: flex; align-items: center; gap: 4px; flex: 1 1 auto; min-width: 0; }
+.tb-reader[hidden] { display: none; }
+/* 階段切換靠右、緊鄰「⋯」,左邊整段留給讀本控制項 */
+.rc-top .tb-right { flex: 0 0 auto; }
+.rc-top .stage-tabs { margin-left: auto; }
+.rc-top .brand { flex: 0 0 auto; }
+.rc-top #panelReader .col-head { display: none; }
+.tb-reader .doc-switch { margin-left: 0; }
+/* 空間不夠時先犧牲品牌標語,文本標題至少留 110px */
+.rc-top .brand-tag { flex: 0 20 auto; }
+/* 標題鈕至少 110px,有空間就長到 290px */
+.tb-reader .doc-switch { flex: 0 1 auto; min-width: 110px; max-width: 320px; justify-content: flex-start; }
+.tb-reader .doc-title {
+  flex: 1 1 auto; min-width: 0;
+  font-family: var(--serif); font-size: 14px; color: inherit;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tb-reader .reader-find { border: 0; padding: 0 2px; background: none; flex: 0 1 auto; }
+.tb-reader .reader-find input { width: 140px; min-width: 90px; }
+/* 搜尋列打開時只收起標語與篇章選單;字級、圖例、搜尋列自己的 ‹ › × 都照常顯示 */
+.rc-top .topbar:has(#readerFind:not([hidden])) .brand-tag,
+.rc-top .topbar:has(#readerFind:not([hidden])) .brand-rule { display: none; }
+/* 收合讀本:讀本區右上角的小符號(浮在原文上方,不佔版面) */
+.rc-top #panelReader { position: relative; }
+.rc-top #panelReader > #btnCollapseReader {
+  position: absolute; top: 8px; right: 14px; z-index: 5;
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--panel); color: var(--ink-faint); opacity: .7;
+}
+.rc-top #panelReader > #btnCollapseReader:hover { opacity: 1; color: var(--ink); background: var(--bg); }
+/* 「≡」讀本功能選單 */
+.rmenu-wrap { position: relative; display: inline-flex; }
+#btnReaderMenu[aria-expanded="true"] { background: var(--bg); color: var(--ink); }
+.reader-menu { top: 40px; left: 0; width: 280px; }
+.reader-menu .rm-label { font-size: 11.5px; color: var(--ink-faint); padding: 6px 12px 2px; letter-spacing: 1px; }
+.reader-menu .rm-list { max-height: 46vh; overflow: auto; }
+.reader-menu .rm-list[hidden] { display: none; }
+.reader-menu .rm-chev { transition: transform .15s; }
+#rmChToggle[aria-expanded="true"] .rm-chev { transform: rotate(90deg); }
+.reader-menu .rm-ch { display: block; width: 100%; padding: 7px 12px 7px 39px; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reader-menu .rm-ch2 { padding-left: 51px; }
+.reader-menu .rm-ch3 { padding-left: 63px; font-size: 13px; color: var(--ink-soft); }
+.reader-menu button[role="menuitem"] { display: flex; align-items: center; gap: 10px; width: 100%; }
+.reader-menu .rm-row { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 13px; }
+.reader-menu .rm-row .rm-label { padding: 0; flex: none; }
+.reader-menu .reader-legend { border: 0; padding: 0; gap: 12px; }
+.reader-menu .reader-legend .orig-link { display: none; }   /* 選單裡另有「看原檔」項目 */
+.reader-menu button:disabled { opacity: .5; }
+.reader-menu button small { font-size: 11.5px; color: var(--ink-faint); margin-left: 4px; }
+@media (max-width: 1400px) { .rc-top .brand-tag, .rc-top .brand-rule { display: none; } }
+#btnMenu[aria-expanded="true"] { background: var(--bg); color: var(--ink); }
+.stage-tabs button:disabled { opacity: .5; cursor: default; }
+
+/* 舊的印章(入口與登入頁仍在用) */
+.seal {
+  width: 38px; height: 38px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--serif);
+  font-size: 13px; font-weight: 700; line-height: 1.15;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  border-radius: 6px;
+  transform: rotate(-3deg);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.35), 0 1px 3px rgba(122,35,49,.35);
+  letter-spacing: 1px;
+}
+
+/* ---------- 手機/平板的欄位切換列(三欄上下排列時才出現) ---------- */
+.mobile-jump {
+  display: none; flex-shrink: 0;
+  gap: 2px; padding: 4px; margin: 6px 10px;
+  background: var(--sub); border-radius: 9px;
+}
+.mobile-jump button {
+  flex: 1; height: 32px; border: 0; border-radius: 7px; background: transparent;
+  font-size: 13px; color: var(--ink-soft); white-space: nowrap;
+}
+.mobile-jump button.on { background: var(--panel); color: var(--accent); font-weight: 700; box-shadow: 0 1px 2px rgba(31,27,26,.10); }
+
+/* ---------- 三欄工作區 ---------- */
+.topbar { flex-shrink: 0; }
+.workspace {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;   /* 讓欄內 position:absolute 的元素(如 .sr-only 標籤)以工作區為基準,不撐高整份文件 */
+}
+.col {
+  height: 100%;
+  min-width: 0;
+  display: flex; flex-direction: column;
+  background: var(--panel);
+}
+#panelChat { flex: 1 1 360px; background: var(--bg); }
+.col-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px 10px 20px;
+  border-bottom: 1px solid var(--line-soft);
+  min-height: 53px;
+  flex-shrink: 0;
+}
+#panelChat .col-head { padding-left: 24px; border-bottom-color: var(--line); }
+.col-head h2 { font-size: 15px; font-weight: 700; white-space: nowrap; }
+.col-head .spacer { flex: 1; }
+/* 文本標題兼「更換文本」入口:平時像純文字,滑過才浮現底色與箭頭 */
+.doc-switch {
+  flex: 0 1 auto; min-width: 0;
+  display: inline-flex; align-items: center; gap: 2px;
+  height: 30px; padding: 0 4px 0 6px; margin-left: -2px;
+  border: 0; border-radius: 6px; background: none;
+  color: var(--ink-soft);
+}
+.doc-switch:hover, .doc-switch:focus-visible { background: var(--bg); color: var(--ink); }
+.doc-switch .ds-chev { flex: none; opacity: .55; transition: opacity .15s; }
+.doc-switch:hover .ds-chev { opacity: 1; }
+.col-head .doc-title {
+  flex: 0 1 auto; min-width: 0;
+  font-family: var(--serif); font-size: 14px; color: inherit;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* 收合後的直排標籤 */
+.col-strip {
+  flex: 0 0 40px; height: 100%;
+  border: 0; background: var(--panel);
+  display: none; flex-direction: column; align-items: center; gap: 10px;
+  padding-top: 14px; color: var(--ink-2);
+}
+.col-strip span { writing-mode: vertical-rl; font-size: 14px; letter-spacing: 4px; }
+.col-strip:hover { background: var(--bg); color: var(--accent); }
+.col-strip.strip-left { border-right: 1px solid var(--line); }
+.col-strip.strip-right { border-left: 1px solid var(--line); }
+.workspace.reader-c #panelReader,
+.workspace.mid-c   #panelChat,
+.workspace.side-c  #panelSide { display: none; }
+.workspace.reader-c #btnExpandReader,
+.workspace.mid-c    #btnExpandMid,
+.workspace.side-c   #btnExpandSide { display: flex; }
+
+/* 欄與欄之間的分隔線(9px 可拖曳區,中間一條 1px 線) */
+.divider {
+  flex: 0 0 9px; height: 100%;
+  cursor: col-resize; touch-action: none;
+  display: flex; justify-content: center;
+  background: transparent;
+}
+.divider i { width: 1px; height: 100%; background: var(--line); transition: background .15s; }
+.divider:hover i, .divider:focus-visible i, .divider.dragging i { background: #B9AFA6; }
+.divider.off { display: none; }
+.hdivider {
+  flex: 0 0 9px; cursor: row-resize; touch-action: none;
+  display: flex; align-items: center;
+}
+.hdivider i { height: 1px; width: 100%; background: var(--line); transition: background .15s; }
+.hdivider:hover i, .hdivider:focus-visible i, .hdivider.dragging i { background: #B9AFA6; }
+.drag-shield { position: fixed; inset: 0; z-index: 90; display: none; }
+.drag-shield.on { display: block; }
+.drag-shield.x { cursor: col-resize; }
+.drag-shield.y { cursor: row-resize; }
+
+/* ---------- 讀本 ---------- */
+.reader-body {
+  flex: 1; overflow-y: auto;
+  padding: 28px 32px 24px;
+  font-family: var(--serif);
+  font-size: var(--reader-size, 17px);
+  line-height: 2.1;
+  color: var(--ink);
+}
+.reader-body p.rp {
+  font-size: 1em;
+  text-indent: 2em;
+  margin: 0 0 18px;
+  position: relative;
+}
+.reader-body p.rp::before {          /* 段落編號:筆記來源會寫「第 N 段」,低調地標在左側 */
+  content: attr(data-no);
+  position: absolute; left: -22px; top: .55em;
+  font-family: var(--sans); font-size: 10px; line-height: 1;
+  color: #C5BDB7; text-indent: 0;
+}
+/* 看原檔(讀本欄底圖例列右側) */
+.orig-link { margin-left: auto; color: var(--accent); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.orig-link:hover { text-decoration: underline; }
+.orig-link[hidden] { display: none; }
+
+/* 章節標題與篇章選單 */
+.reader-body p.rp.rh { text-indent: 0; font-weight: 700; line-height: 1.5; margin: 30px 0 14px; }
+.reader-body p.rh1 { font-size: 1.22em; }
+.reader-body p.rh2 { font-size: 1.1em; }
+.reader-body p.rh3 { font-size: 1.02em; }
+.reader-body p.rp.rh:first-child { margin-top: 0; }
+.chapter-sel {
+  flex: 0 1 auto; max-width: 120px; min-width: 64px; font: inherit; font-family: var(--sans); font-size: 12.5px;
+  padding: 3px 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink-2);
+}
+.chapter-sel[hidden] { display: none; }
+
+/* 讀本搜尋列 */
+.reader-find {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  padding: 6px 12px; border-bottom: 1px solid var(--line); background: var(--panel);
+  font-family: var(--sans); font-size: 13px;
+}
+.reader-find[hidden] { display: none; }
+.reader-find input {
+  flex: 1; min-width: 0; font: inherit; padding: 5px 9px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink);
+}
+.reader-find input:focus { outline: none; border-color: var(--accent); }
+.rf-count { color: var(--ink-faint); white-space: nowrap; }
+::highlight(rf-all) { background: #F6E7A9; }
+::highlight(rf-cur) { background: #F0B23A; color: #1F1B1A; }
+/* 對話裡的引文與「第N段」可點擊,讀本捲到該段 */
+.q-link { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+.q-link:hover { background: var(--tip); }
+.q-no {
+  display: inline-block; margin-left: 3px; padding: 0 5px; border-radius: 8px; vertical-align: 1px;
+  background: var(--sub); color: var(--ink-faint); font-family: var(--sans); font-size: 11px; line-height: 16px;
+}
+.reader-end {
+  margin-top: 8px; padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  text-align: center;
+  font-family: var(--sans); font-size: 12px; color: var(--ink-faint);
+}
+.reader-legend {
+  flex-shrink: 0;
+  display: flex; flex-wrap: wrap; gap: 14px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12px; color: var(--ink-soft);
+}
+.reader-legend .mk-hl { padding: 0 2px; }
+
+/* 讀本標記:螢光筆是底色;筆記是綠色虛底線,引用是黑色底線,分支是紅色底線 */
+/* 筆記虛線用 background-image 畫,才能和引用(text-decoration)、分支(border-bottom)、螢光筆(底色)同時疊加 */
+.mk { border-radius: 0; }
+.mk-hl   { background-color: var(--hl); }
+.mk-note {
+  background-image: linear-gradient(to right, var(--note) 60%, transparent 60%);
+  background-size: 7px 2px;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+}
+.mk-quote  { text-decoration: underline; text-decoration-color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 5px; }
+.mk-branch { border-bottom: 2px solid var(--branch); }
+p.rp .mk-hl, p.rp .mk-note, p.rp .mk-branch { cursor: pointer; }
+p.rp .mk-hl:hover { filter: saturate(1.4) brightness(.97); }
+p.rp .mk-note:hover { background-color: #EAF3EE; }
+p.rp .mk-branch:hover { background-color: #FBF1EF; }
+.reader-legend .mk-quote { text-underline-offset: 3px; }
+
+/* ---------- 中欄:導讀 ---------- */
+.briefing { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.workspace.stage-dialogue .briefing { display: none; }
+.briefing-scroll { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.brief-intro { line-height: 1.8; color: var(--ink-2); }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.card h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.card h3 small { font-weight: 400; color: var(--ink-soft); font-size: 12px; margin-left: 2px; }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+.card-head h3 { margin: 0; }
+.card-text { line-height: 1.8; color: var(--ink-2); white-space: pre-wrap; }
+.brief-loading { color: var(--ink-faint); font-size: 13px; }
+.brief-error { color: var(--branch); font-size: 13px; }
+
+/* 心智圖(卡片內縮圖:與放大版同一張 SVG,縮放到卡片寬度) */
+.mm-list {
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 4px;
+  cursor: zoom-in; border-radius: 8px;
+}
+.mm-list:hover { background: var(--bg); }
+.mm-thumb { display: block; width: 100%; height: auto; max-height: 360px; }
+/* 放大的心智圖(SVG) */
+.mm-center rect { fill: var(--accent); rx: 10; }
+.mm-center text { fill: #fff; font-family: var(--serif); font-weight: 700; font-size: 16px; }
+.mm-branch rect { rx: 8; }
+.mm-branch text { fill: #fff; font-size: 13px; font-family: var(--sans); font-weight: 600; }
+.mm-leaf { font-size: 12.5px; fill: var(--ink); font-family: var(--sans); }
+.mm-edge { fill: none; stroke-width: 1.6; opacity: .55; }
+
+.brief-foot {
+  flex-shrink: 0;
+  padding: 12px 24px 16px;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.brief-foot .btn.primary { height: 44px; font-size: 15px; }
+.brief-gate-hint { font-size: 12px; color: var(--ink-soft); text-align: center; }
+
+/* ---------- 中欄:對話 ---------- */
+.workspace.stage-guide .chat-body,
+.workspace.stage-guide .composer,
+.workspace.stage-guide .crumbs,
+.workspace.stage-guide .branch-actions { display: none !important; }
+.crumbs { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; flex-wrap: wrap; }
+.crumbs .c-sep { color: var(--ink-soft); }
+.crumbs .c-link {
+  border: 0; background: none; padding: 0;
+  color: var(--ink-soft); font-size: 14px;
+  text-decoration: underline; text-underline-offset: 3px;
+  max-width: 12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.crumbs .c-link:hover { color: var(--ink); }
+.crumbs .c-cur { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 18em; }
+.crumbs .c-cur.branch { color: var(--branch); font-weight: 500; }
+.branch-actions { display: none; gap: 6px; align-items: center; }
+.branch-actions.on { display: flex; }
+
+.chat-body {
+  flex: 1; overflow-y: auto;
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.msg { display: flex; flex-direction: column; gap: 6px; }
+.msg.ai { max-width: 88%; align-self: flex-start; }
+.msg.user { max-width: 80%; align-self: flex-end; align-items: flex-end; }
+.msg-who { font-size: 12px; color: var(--ink-soft); display: inline-flex; align-items: center; gap: 4px; }
+.msg-who svg { flex: none; }
+.bubble {
+  padding: 12px 16px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 100%;
+}
+.msg.ai .bubble { background: var(--panel); border: 1px solid var(--line); border-radius: 4px 12px 12px 12px; }
+.msg.user .bubble { background: var(--sub); border-radius: 12px 4px 12px 12px; }
+.msg-quote {
+  font-family: var(--serif); font-size: 13px; color: var(--ink-soft);
+  border-left: 2px solid var(--ink); padding-left: 8px;
+  white-space: pre-wrap;
+}
+.bubble strong { font-weight: 700; }
+.bubble em { font-style: normal; border-bottom: 1px solid var(--line); }
+.bubble code { font-family: ui-monospace, "Courier New", monospace; font-size: 13px; background: var(--bg); border-radius: 4px; padding: 1px 5px; }
+.msg-final { font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+.msg-actions { display: flex; gap: 2px; }
+.msg-actions button {
+  border: 0; background: none;
+  font-size: 12px; color: var(--ink-faint);
+  padding: 2px 6px; border-radius: 4px;
+}
+.msg-actions button:hover { background: var(--panel); color: var(--ink); }
+.msg-actions button[data-act=branch]:hover { color: var(--branch); }
+.msg-actions button[data-act=note]:hover { color: var(--note); }
+@media (hover: hover) {
+  .msg .msg-actions { opacity: 0; transition: opacity .15s; }
+  .msg:hover .msg-actions, .msg:focus-within .msg-actions { opacity: 1; }
+}
+
+/* 分支收束卡片 */
+.merge-card {
+  align-self: stretch;
+  border: 1px dashed var(--line);
+  border-left: 3px solid var(--branch);
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 10px 14px;
+  line-height: 1.8; color: var(--ink-2);
+}
+.merge-card .m-head { font-size: 12px; color: var(--branch); font-weight: 500; margin-bottom: 4px; }
+.merge-card .m-link { border: 0; background: none; padding: 0; color: var(--ink-soft); text-decoration: underline; font-size: 12px; }
+
+/* 空分支起點提示 */
+.branch-empty-hint {
+  align-self: center; max-width: 88%;
+  text-align: center;
+  background: var(--tip);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 13px; line-height: 1.9; color: var(--ink-2);
+}
+.branch-empty-hint .beh-q { color: var(--branch); font-family: var(--serif); }
+
+/* 打字中 */
+.typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: #CFC6BD; animation: blink 1.2s infinite; }
+.typing i:nth-child(2) { animation-delay: .2s; }
+.typing i:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+
+/* 選項式快速回覆 */
+.quick-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; align-items: flex-start; }
+.quick-opts button {
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 8px; padding: 7px 13px; font-size: 13.5px; text-align: left;
+}
+.quick-opts button:hover { border-color: var(--accent); }
+.quick-opts .opt-no { color: var(--accent); font-weight: 700; margin-right: 6px; font-size: 12px; }
+
+/* 輸入區 */
+.composer {
+  flex-shrink: 0;
+  padding: 12px 24px 16px;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.pending-quote {
+  display: flex; align-items: center; gap: 8px;
+  border-left: 2px solid var(--ink);
+  padding: 4px 4px 4px 10px;
+  font-size: 13px; color: var(--ink-soft);
+  font-family: var(--serif);
+  background: var(--panel); border-radius: 0 6px 6px 0;
+}
+.pending-quote strong { font-family: var(--sans); font-size: 12px; color: var(--ink); font-weight: 500; flex: none; }
+.pending-quote span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pending-quote button { border: 0; background: none; color: var(--ink-soft); width: 28px; height: 28px; border-radius: 6px; }
+.pending-quote button:hover { background: var(--bg); color: var(--ink); }
+.persona-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+/* 讀伴角色:每個角色有自己的圖示,說明放在功能說明裡 */
+.persona-seg button { display: inline-flex; align-items: center; gap: 5px; }
+.persona-seg button svg { flex: none; opacity: .75; }
+.persona-seg button.on svg { opacity: 1; color: var(--accent); }
+/* 簡要查詢在上、送出在下,同一欄同寬對齊;輸入框高度跟著這一欄 */
+.send-col { display: flex; flex-direction: column; gap: 6px; flex: none; width: 104px; }
+.send-col .btn { width: 100%; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+/* 簡要查詢:酒紅框線＋淡底,看得出是可用的功能,又和實心的「送出」分得開 */
+.send-col .lookup-btn { height: 34px; font-size: 13px; color: var(--accent); border-color: #D9B5BA; background: #FBF6F5; font-weight: 500; }
+.send-col .lookup-btn:hover { border-color: var(--accent); background: #F6ECED; }
+.lookup-btn[aria-expanded="true"] { border-color: var(--accent); background: #F1E2E4; }
+.composer-row { display: flex; gap: 8px; align-items: stretch; }
+.composer textarea {
+  flex: 1; min-width: 0;
+  resize: none;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel);
+  padding: 10px 12px;
+  font-family: inherit; font-size: 14px; line-height: 1.6;
+  color: var(--ink);
+  max-height: 160px;
+  outline: none;
+}
+.composer textarea:focus { border-color: #B9AFA6; }
+.send-btn { height: 44px; padding: 0 18px; }
+.composer textarea { min-height: 84px; }   /* 與右側「簡要查詢＋送出」同高 */
+
+/* ---------- 右欄:對話樹 + 筆記 ---------- */
+.side-col { background: var(--panel); }
+.side-sec { display: flex; flex-direction: column; min-height: 0; }
+.sec-head { display: flex; align-items: center; gap: 4px; padding: 8px 8px 8px 16px; flex-shrink: 0; }
+.sec-toggle {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 6px;
+  border: 0; background: none; padding: 6px 0;
+  color: var(--ink); text-align: left;
+}
+.sec-toggle .chev { transition: transform .15s; flex: none; }
+.sec-toggle[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+.sec-name { font-size: 15px; font-weight: 700; }
+.sec-count { font-size: 13px; color: var(--ink-soft); }
+.sec-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.side-sec.folded .sec-body { display: none; }
+/* 導讀階段沒有對話,右欄只放筆記 */
+.workspace.stage-guide #treeSec,
+.workspace.stage-guide #sideSplitter { display: none; }
+.notes-collapse { display: none; }
+.workspace.stage-guide .notes-collapse { display: inline-flex; }
+/* 對話樹與筆記的高度:兩個都展開時對話樹固定高度(可拖曳),其中一個折疊時另一個填滿 */
+#treeSec { flex: 0 0 var(--tree-h, 260px); }
+#notesSec { flex: 1 1 auto; }
+.side-col.tree-folded #treeSec { flex: 0 0 auto; }
+.side-col.notes-folded #notesSec { flex: 0 0 auto; }
+.side-col.notes-folded:not(.tree-folded) #treeSec { flex: 1 1 auto; }
+.side-col.tree-folded #sideSplitter,
+.side-col.notes-folded #sideSplitter { cursor: default; pointer-events: none; flex-basis: 1px; }
+.side-col.tree-folded #sideSplitter i,
+.side-col.notes-folded #sideSplitter i { background: var(--line); }
+
+.tip {
+  margin: 0 12px 8px; padding: 10px 12px;
+  background: var(--tip); border-radius: 8px;
+  font-size: 12px; line-height: 1.6; color: var(--ink-2);
+  display: flex; gap: 8px; align-items: flex-start;
+  flex-shrink: 0;
+}
+.tip span { flex: 1; }
+.tip button { border: 0; background: none; color: var(--ink-soft); width: 20px; height: 20px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.tip button:hover { color: var(--ink); background: rgba(0,0,0,.04); }
+
+.tree-list { flex: 1; min-height: 0; overflow-y: auto; padding: 0 8px 12px; display: flex; flex-direction: column; gap: 2px; position: relative; }
+/* 主幹與分支之間的連線:實線=進行中/已保留,虛線=已收束回主幹 */
+.tree-edges { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 1; }
+.tree-edges path { fill: none; stroke: #D8B9B2; stroke-width: 1.5; }
+.tree-edges path.merged { stroke: #C9BFB8; stroke-dasharray: 4 3; }
+.tree-row {
+  display: flex; align-items: center; gap: 2px;
+  border-radius: 8px; padding-right: 2px;
+  color: var(--ink);
+}
+.tree-row.parked { color: var(--ink-soft); }
+.tree-row:hover { background: var(--bg); }
+.tree-row.current { background: var(--sub); font-weight: 700; color: var(--ink); }
+.tree-row.drop-target { box-shadow: inset 0 0 0 2px var(--branch); }
+.tree-row.dragging { opacity: .5; }
+.tree-pick {
+  flex: 1; min-width: 0; text-align: left;
+  border: 0; background: none; padding: 8px 4px;
+  font-size: 13px; color: inherit; font-weight: inherit;
+  display: flex; align-items: center; gap: 8px;
+  touch-action: pan-y;
+}
+.tree-row.renaming { padding: 4px 6px 4px 4px; gap: 8px; background: var(--sub); }
+.tree-rename {
+  flex: 1; min-width: 0; height: 30px;
+  border: 1px solid var(--accent); border-radius: 6px; padding: 0 8px;
+  font-family: inherit; font-size: 13px; color: var(--ink); background: var(--panel); outline: none;
+}
+.tree-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
+.tree-dot.branch { background: var(--branch); }
+.tree-dot.kept { background: transparent; border: 1.5px solid var(--branch); }
+.tree-dot.merged { background: transparent; border: 1.5px solid #B9AFA6; }
+.tree-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-meta { font-size: 11px; color: var(--ink-soft); white-space: nowrap; font-weight: 400; }
+.node-menu {
+  margin: 2px 0 6px 28px;
+  background: var(--panel);
+  border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(31,27,26,.10);
+  padding: 4px;
+  display: flex; flex-direction: column;
+}
+.node-menu button { text-align: left; padding: 8px 10px; border: 0; background: none; font-size: 13px; color: var(--ink); border-radius: 6px; }
+.node-menu button:hover { background: var(--bg); }
+.node-menu button.danger { color: var(--branch); }
+.node-menu button:disabled { color: var(--ink-faint); cursor: not-allowed; background: none; }
+
+/* 筆記 */
+.notes-area { flex: 1; min-height: 0; overflow-y: auto; padding: 0 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+/* 手寫新筆記的輸入框 */
+.note-new {
+  border: 1px solid #B9AFA6; border-radius: 8px;
+  padding: 10px; background: var(--panel);
+  display: flex; flex-direction: column; gap: 8px;
+  flex-shrink: 0;
+}
+.note-new .nn-title {
+  width: 100%; border: 0; border-bottom: 1px solid var(--line-soft); outline: none;
+  padding: 2px 0 8px; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--ink);
+  background: transparent;
+}
+.note-new .nn-title::placeholder { font-weight: 400; }
+.note-new textarea {
+  width: 100%; border: 0; outline: none; resize: none;
+  font-family: inherit; font-size: 13px; line-height: 1.7; color: var(--ink);
+  min-height: 72px; background: transparent;
+}
+.nn-row { display: flex; align-items: center; gap: 6px; }
+.nn-hint { flex: 1; font-size: 11px; color: var(--ink-faint); }
+@media (hover: none) { .nn-hint { visibility: hidden; } }
+.notes-empty { font-size: 12px; color: var(--ink-faint); padding: 4px 4px; line-height: 1.8; }
+.note-card {
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+  cursor: pointer; background: var(--panel);
+  text-align: left;
+}
+.note-card:hover { border-color: #D6CFC7; }
+.note-card.flash { box-shadow: 0 0 0 2px var(--note); }
+.note-card .n-title { font-size: 13px; font-weight: 700; }
+.note-card .n-title-input {
+  width: 100%; height: 30px; border: 1px solid var(--accent); border-radius: 6px; padding: 0 8px;
+  font-family: inherit; font-size: 13px; font-weight: 700; color: var(--ink); outline: none; background: var(--panel);
+}
+.note-card .n-title-input::placeholder { font-weight: 400; }
+.note-card .n-quote {
+  font-family: var(--serif); font-size: 13px; color: var(--ink-2);
+  white-space: pre-wrap; word-break: break-word;
+}
+/* 卡片頂列:來源分類 + 細節(第幾段/哪條分支)+ 拖曳握把 */
+/* 頂列:左邊拖曳握把,右上角 ✕ 刪除 */
+.note-card .n-head { display: flex; align-items: center; gap: 6px; min-width: 0; margin: -4px -6px 0 -6px; }
+.n-kind {
+  flex: none; font-size: 11px; line-height: 1; padding: 4px 7px;
+  border-radius: 999px; background: var(--sub); color: var(--ink-2); font-weight: 500;
+}
+.n-detail { flex: 1; min-width: 0; font-size: 11px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.n-grip {
+  flex: none;
+  width: 24px; height: 28px; border: 0; border-radius: 6px; background: none;
+  color: #B9AFA6; cursor: grab; touch-action: none;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.n-grip:hover { color: var(--ink-2); background: var(--bg); }
+.n-del {
+  margin-left: auto; flex: none;
+  width: 28px; height: 28px; border: 0; border-radius: 6px; background: none;
+  color: #B9AFA6;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.n-del:hover { color: var(--branch); background: #FBF1EF; }
+.note-card.dragging { position: relative; z-index: 5; box-shadow: var(--pop-shadow); cursor: grabbing; opacity: .95; }
+.note-card.dragging .n-grip { cursor: grabbing; }
+.note-card.drop-before { box-shadow: 0 -3px 0 0 var(--accent); }
+.note-card.drop-after { box-shadow: 0 3px 0 0 var(--accent); }
+/* 依來源篩選 */
+.note-filters { display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none; }
+.note-filters::-webkit-scrollbar { display: none; }
+.nf-chip {
+  flex: none; display: inline-flex; align-items: center; gap: 4px;
+  height: 28px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--panel);
+  font-size: 12px; color: var(--ink-2); white-space: nowrap;
+}
+.nf-chip:hover { background: var(--bg); }
+.nf-chip.on { border-color: var(--accent); background: #FBF6F5; color: var(--accent); font-weight: 500; }
+.nf-count { font-size: 11px; opacity: .7; }
+.note-card .n-text { font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+.note-card:not(.open) .n-quote,
+.note-card:not(.open) .n-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.note-card .n-tools { display: none; flex-wrap: wrap; gap: 4px; padding-top: 4px; border-top: 1px solid var(--line-soft); }
+.note-card.open .n-tools { display: flex; }
+.note-card .n-tools button { border: 0; background: none; font-size: 12px; color: var(--ink-2); padding: 4px 6px; border-radius: 4px; }
+.note-card .n-tools button:hover { background: var(--bg); }
+.note-card .n-tools button[data-t=del] { color: var(--branch); }
+.note-card .n-tools .n-save { color: var(--accent); font-weight: 700; }
+.note-card .n-edit { display: flex; flex-direction: column; gap: 6px; cursor: default; }
+.note-card .n-edit textarea {
+  width: 100%; font-family: inherit; font-size: 13px; line-height: 1.6;
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; resize: vertical;
+}
+.note-card .n-edit-row { display: flex; gap: 6px; }
+
+/* ---------- 選取文字工具列 ---------- */
+.sel-toolbar {
+  position: fixed; z-index: 60;
+  display: none; flex-direction: column; gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(31,27,26,.14);
+  padding: 4px;
+  font-size: 13px; line-height: 1.2;
+}
+.sel-toolbar.show { display: flex; }
+.st-row { display: flex; gap: 2px; }
+.sel-toolbar button {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 12px;
+  border: 0; border-radius: 6px; background: none;
+  color: var(--ink); font-size: 13px; white-space: nowrap;
+}
+.sel-toolbar button:hover { background: var(--bg); }
+.sel-toolbar .st-branch { color: var(--branch); font-weight: 500; }
+.sel-toolbar .st-note { color: var(--note); font-weight: 500; }
+.sel-toolbar .st-quote { color: var(--ink); font-weight: 500; }
+.sel-toolbar .st-hl { color: #8A6A10; font-weight: 500; }
+.sel-toolbar .st-hl svg { color: #C9A227; }
+.sel-toolbar.docked {
+  left: 10px !important; right: 10px; top: auto !important;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  animation: dockUp .18s ease-out;
+}
+.sel-toolbar.docked .st-row button { flex: 1; justify-content: center; padding: 0 6px; gap: 4px; }
+@media (max-width: 420px) { .sel-toolbar.docked .st-row button svg { display: none; } }
+@keyframes dockUp { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------- 彈出視窗 ---------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 80;
+  background: rgba(31,27,26,.40);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.dialog {
+  width: 100%;
+  background: var(--panel);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(31,27,26,.25);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+}
+.dlg-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 16px 16px 28px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.dlg-head h2 { font-size: 18px; font-weight: 700; flex: 1; }
+.dlg-titles { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.dlg-titles h2 { flex: none; }
+.dlg-sub { font-size: 13px; color: var(--ink-soft); }
+.dlg-close { width: 36px; height: 36px; border-radius: 8px; }
+.dlg-body { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 28px; display: flex; flex-direction: column; gap: 22px; color: var(--ink-2); }
+.dlg-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 28px; border-top: 1px solid var(--line); flex-shrink: 0; }
+.dlg-foot .spacer { flex: 1; }
+
+/* 舊式 sheet(匯出、閱讀回顧、收束目標、心智圖放大) */
+.sheet {
+  background: var(--panel);
+  border-radius: 14px;
+  width: min(660px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 26px 28px;
+  box-shadow: 0 20px 60px rgba(31,27,26,.25);
+}
+.sheet h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.sheet .sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 18px; }
+.sheet label.f-label { display: block; font-size: 13px; color: var(--ink-soft); margin: 14px 0 5px; }
+.sheet .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; align-items: center; }
+.sheet .row .spacer { flex: 1; }
+.saved-docs { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.saved-doc {
+  display: flex; align-items: center; gap: 10px;
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 12px; background: var(--panel);
+  font-size: 13.5px;
+}
+.saved-doc .sd-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--serif); border: none; background: none; text-align: left; font-size: 14px; }
+.saved-doc .sd-title:hover { color: var(--accent); }
+.check-row { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 8px 0; }
+.check-row input { width: 16px; height: 16px; accent-color: var(--accent); }
+.summary-body {
+  font-size: 14px; white-space: pre-wrap;
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 16px;
+  max-height: 50vh; overflow-y: auto;
+  font-family: var(--serif); line-height: 1.9;
+}
+.map-sheet { width: auto; min-width: min(560px, 92vw); max-width: calc(100vw - 48px); }
+.map-zoom { overflow: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px; max-height: 72vh; max-width: 100%; }
+.map-zoom svg { display: block; margin: 0 auto; }
+
+/* 匯出筆記:先選內容,再點格式(四種格式同一個樣式) */
+.export-dialog { max-width: 640px; }
+.ex-sec { display: flex; flex-direction: column; gap: 10px; }
+.ex-sec h3 { font-size: 15px; font-weight: 700; color: var(--ink); }
+.ex-checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0 16px; }
+.ex-checks .check-row { margin: 4px 0; color: var(--ink); }
+.ex-formats { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.ex-fmt {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel); color: var(--ink);
+  transition: border-color .15s, background .15s;
+}
+.ex-fmt:hover { border-color: var(--accent); background: #FBF6F5; }
+.ex-fmt:disabled { opacity: .5; cursor: wait; }
+.ef-name { font-size: 15px; font-weight: 700; color: var(--accent); }
+.ef-desc { font-size: 12.5px; line-height: 1.6; color: var(--ink-soft); }
+
+/* 讀伴介紹 */
+
+.stage-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.stage-card { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.stage-card .sc-no { font-size: 12px; color: var(--gold); font-weight: 700; letter-spacing: 1px; }
+.stage-card .sc-name { font-size: 16px; font-weight: 700; color: var(--accent); }
+
+/* 功能說明 */
+.help-dialog { max-width: 900px; height: 600px; }
+.help-dialog .dlg-head { align-items: center; padding: 16px 16px 16px 28px; }
+.help-wrap { flex: 1; min-height: 0; display: flex; flex-wrap: wrap; overflow-y: auto; }
+.help-nav { flex: 1 1 170px; max-width: 100%; padding: 12px; border-right: 1px solid var(--line-soft); background: var(--bg); display: flex; flex-direction: column; gap: 2px; }
+.help-nav button { text-align: left; height: 38px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2); font-size: 14px; flex: none; }
+.help-nav button:hover { color: var(--ink); }
+.help-nav .help-back {
+  margin-top: auto;
+  border-top: 1px solid var(--line); border-radius: 0;
+  padding-top: 10px; height: 48px;
+  color: var(--ink-soft); font-size: 13px;
+}
+.help-nav .help-back:hover { color: var(--accent); }
+.help-nav button.on { background: var(--panel); color: var(--accent); font-weight: 700; box-shadow: 0 1px 2px rgba(31,27,26,.08); }
+.help-main { flex: 999 1 420px; min-width: 0; padding: 24px 32px 24px; line-height: 1.8; color: var(--ink-2); display: flex; flex-direction: column; gap: 14px; }
+.help-sec { display: none; flex-direction: column; gap: 12px; }
+.help-sec.on { display: flex; }
+.help-sec h3 { font-size: 17px; color: var(--ink); }
+.help-sec h4 { font-size: 14px; color: var(--ink); margin-top: 4px; }
+.help-sec strong { color: var(--ink); }
+.help-sec ol, .help-sec ul { padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+.table-wrap { overflow-x: auto; }
+.help-sec table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.help-sec th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); font-weight: 500; color: var(--ink-soft); }
+.help-sec td { padding: 10px; border-bottom: 1px solid var(--line-soft); }
+.help-sec td:first-child { white-space: nowrap; }
+.help-sec .t-branch { color: var(--branch); font-weight: 500; }
+.help-sec .t-note { color: var(--note); font-weight: 500; }
+.help-sec .mk-hl { padding: 0 2px; }
+.help-sec .mk-quote { text-underline-offset: 3px; }
+/* 讀伴介紹:同樣的視窗樣式,但不分節,所有段落依序顯示、整頁捲動 */
+.about-page { height: auto; max-height: 88vh; }
+.about-page .help-main { overflow-y: auto; gap: 28px; }
+.about-page .help-sec { display: flex; }
+.about-page .about-foot { margin-top: 0; }
+.help-pager {display: flex; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+.help-pager .btn { height: 36px; font-size: 13px; padding: 0 12px; }
+.help-pager .btn.invisible { visibility: hidden; }
+
+/* 開始共讀/更換文本 */
+.up-dialog { max-width: 760px; max-height: 92vh; }
+.up-dialog .dlg-head { align-items: center; }
+.up-hero p { font-family: var(--serif); line-height: 2; color: var(--ink-2); }
+.up-sec { display: flex; flex-direction: column; gap: 10px; }
+.up-sec h3 { font-size: 15px; font-weight: 700; color: var(--ink); }
+.up-sec-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.up-sec-head .spacer { flex: 1; }
+/* 試試範例:上傳框底部的一行小字連結 */
+.dropzone .dz-sample { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+.dropzone .dz-sample .link-btn { font-size: 12.5px; color: var(--accent); }
+.dropzone {
+  border: 1.5px dashed #CFC6BD; border-radius: 12px;
+  padding: 28px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  text-align: center; background: var(--bg); color: var(--ink-soft);
+}
+.dropzone.over { border-color: var(--accent); background: #F8F1F0; }
+.dropzone .dz-main { color: var(--ink); }
+.dropzone .dz-note { font-size: 12px; }
+.dropzone .dz-status { font-size: 12px; color: var(--note); min-height: 1em; }
+.dropzone .dz-status.err { color: var(--accent); font-weight: 600; font-size: 13px; }
+.paste-box { display: flex; flex-direction: column; gap: 10px; }
+.paste-box[hidden] { display: none; }
+.paste-box label { font-size: 13px; color: var(--ink); }
+.paste-box input {
+  height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px;
+  font-family: inherit; font-size: 14px; color: var(--ink); outline: none;
+}
+.paste-box textarea {
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+  font-family: var(--serif); font-size: 14px; line-height: 1.8;
+  resize: vertical; min-height: 150px; color: var(--ink); outline: none;
+}
+.paste-box input:focus, .paste-box textarea:focus { border-color: #B9AFA6; }
+.up-count { font-size: 12px; color: var(--ink-soft); }
+.check-block { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--ink); cursor: pointer; }
+.check-block input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+.check-block small { display: block; font-size: 12px; color: var(--ink-soft); }
+/* 試用上限與「查看規範」同一行;展開的規範全文另起一行 */
+.up-terms { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 12px 14px; background: var(--bg); border-radius: 10px; font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+.up-terms .link-btn { font-size: 12px; white-space: nowrap; }
+.up-terms .up-privacy { flex-basis: 100%; }
+.up-limit.over, .up-limit.over ~ * , .up-count.over { color: var(--branch); font-weight: 600; }
+.up-privacy[hidden] { display: none; }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: #fff;
+  padding: 9px 18px; border-radius: 9px;
+  font-size: 13px; opacity: 0; pointer-events: none;
+  transition: all .25s; z-index: 100;
+  box-shadow: 0 6px 20px rgba(31,27,26,.3);
+  max-width: calc(100vw - 32px);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.err { background: var(--accent); }
+
+/* 捲軸 */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: #D6CFC7; border-radius: 5px; border: 2px solid var(--panel); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- 簡要查詢浮動視窗 ---------- */
+.lookup-panel {
+  position: fixed; right: 16px; bottom: 16px;
+  width: min(360px, calc(100vw - 24px));
+  background: var(--panel);
+  border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(31,27,26,.2);
+  z-index: 75;
+  display: none; flex-direction: column; overflow: hidden;
+}
+.lookup-panel.open { display: flex; animation: dockUp .18s ease-out; }
+.lk-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.lk-title { font-size: 14px; font-weight: 700; }
+.lk-head .spacer { flex: 1; }
+.lk-close { border: none; background: none; color: var(--ink-soft); font-size: 14px; padding: 2px 6px; border-radius: 6px; }
+.lk-close:hover { color: var(--ink); background: var(--bg); }
+.lk-note { padding: 8px 14px; background: var(--bg); border-bottom: 1px solid var(--line-soft); font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+.lk-body { max-height: 40vh; overflow-y: auto; }
+.lk-answer { padding: 12px 14px 4px; font-size: 13.5px; line-height: 1.9; font-family: var(--serif); white-space: pre-wrap; word-break: break-word; }
+.lk-tools { display: flex; gap: 8px; padding: 8px 14px 12px; }
+.lk-input-row { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.lk-input-row input { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 0 11px; height: 34px; font-family: inherit; font-size: 13.5px; outline: none; }
+.lk-input-row input:focus { border-color: #B9AFA6; }
+
+/* ---------- 底部單位 banner(浮動式) ---------- */
+/* 平時收在畫面外,滑鼠移到畫面底部(或移到 banner 上)才浮出 */
+.site-banner {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,.97);
+  border-top: 1px solid var(--line);
+  z-index: 79;               /* 高於入口/登入頁的 .course-gate(78),低於彈窗的 .overlay(80) */
+  transform: translateY(100%);
+  transition: transform .22s ease;
+  backdrop-filter: blur(4px);
+}
+.site-banner.peek, .site-banner:hover { transform: none; }
+.sb-inner { max-width: 1180px; margin: 0 auto; padding: 7px 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.sb-links { display: flex; flex-direction: column; gap: 1px; font-size: 11.5px; }
+.sb-links a { color: var(--ink-soft); text-decoration: none; }
+.sb-links a:hover { color: var(--accent); text-decoration: underline; }
+.sb-logos { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.sb-logos img { height: 26px; width: auto; display: block; }
+.sb-logos img.sb-hai { height: 30px; }
+.sb-org { display: flex; flex-direction: column; gap: 1px; font-size: 10.5px; color: var(--ink-soft); line-height: 1.5; }
+
+/* ---------- 課程模式:登入 / 文本清單(整頁) ---------- */
+.course-gate {
+  position: fixed; inset: 0; z-index: 78;
+  background: var(--bg);
+  overflow-y: auto;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 6vh 20px 100px;
+}
+.course-gate.hidden { display: none; }
+.cg-inner { width: 100%; max-width: 760px; }
+.cg-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 34px 36px;
+  max-width: 460px;
+  margin: 0 auto;
+  text-align: center;
+}
+.cg-card.cg-wide { max-width: 760px; text-align: left; }
+.cg-card.hidden { display: none; }
+/* 卡片內的區塊(加入課程的兩個步驟、確認密碼欄、回上一步等)用 .hidden 切換 */
+.cg-card .hidden { display: none !important; }
+.cg-card h2 { font-family: var(--serif); font-size: 21px; letter-spacing: 3px; margin-bottom: 14px; }
+.cg-intro { font-family: var(--serif); font-size: 13.5px; line-height: 2; color: var(--ink-2); text-align: left; margin-bottom: 12px; }
+.cg-hint { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 14px; line-height: 1.9; }
+.cg-card .f-label { display: block; text-align: left; font-size: 12.5px; color: var(--ink-soft); margin: 12px 0 5px; }
+.cg-card input {
+  width: 100%;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel);
+  padding: 10px 12px;
+  font-family: var(--serif); font-size: 14.5px;
+  outline: none;
+}
+.cg-card input:focus { border-color: var(--accent); }
+.cg-err { color: var(--accent); font-size: 12.5px; min-height: 18px; margin-top: 10px; }
+.cg-go { width: 100%; height: 44px; font-size: 14.5px; }
+.cg-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.cg-head .spacer { flex: 1; }
+.cg-course { font-family: var(--serif); font-size: 18px; font-weight: 700; letter-spacing: 2px; }
+.cg-who { font-size: 12px; color: var(--ink-faint); }
+.cg-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.cg-item {
+  display: block; width: 100%; text-align: left;
+  border: 1px solid var(--line); background: var(--panel);
+  border-radius: 10px; padding: 14px 18px;
+  font-family: inherit; transition: border-color .15s, background .15s;
+}
+.cg-item:hover { border-color: var(--accent); background: var(--bg); }
+.cg-item.disabled { opacity: .55; cursor: not-allowed; }
+.cg-item.disabled:hover { border-color: var(--line); background: var(--panel); }
+.cg-t-title { font-family: var(--serif); font-size: 15.5px; font-weight: 600; margin-bottom: 3px; }
+.cg-t-meta { font-size: 11.5px; color: var(--ink-faint); display: flex; gap: 10px; align-items: center; }
+.cg-state { padding: 1px 8px; border-radius: 20px; background: var(--jade-wash); color: var(--ink-soft); }
+.cg-state.done { background: var(--verm-wash); color: var(--accent); }
+.cg-state.pending { background: var(--tip); color: #8a7a52; }
+.cg-empty { font-size: 13px; color: var(--ink-faint); padding: 26px 0; text-align: center; }
+/* 課程模式:隱藏自行上傳的相關入口 */
+body[data-mode="course"] #btnSample,
+.cg-entries { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+.cg-entry {
+  display: block; width: 100%; text-align: left;
+  border: 1px solid var(--line); background: var(--panel);
+  border-radius: 12px; padding: 18px 20px;
+  font-family: inherit; transition: border-color .15s, background .15s;
+}
+.cg-entry:hover { border-color: var(--accent); background: var(--bg); }
+.ce-icon { font-size: 22px; display: block; margin-bottom: 6px; }
+.ce-title { display: block; font-family: var(--serif); font-size: 16px; font-weight: 700; letter-spacing: 1px; margin-bottom: 3px; }
+.ce-desc { display: block; font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; }
+.cg-back { width: 100%; margin-top: 10px; }
+.cg-entry-teacher { background: var(--bg); border-style: dashed; }
+.cg-entry-teacher .ce-title { font-size: 14.5px; }
+.cg-entry-teacher .ce-icon { font-size: 18px; }
+/* 入口與登入頁的大標誌(與頂列同一個書本圖示) */
+.entry-logo { width: 64px; height: 62px; margin: 0 auto 12px; }
+.cg-alt { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--ink-soft); text-align: center; line-height: 1.9; }
+.cg-alt a { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.cg-small { font-size: 12px; text-align: center; margin: 8px 0 0; }
+.cg-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.cg-section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--serif); font-size: 13.5px; font-weight: 600;
+  color: var(--ink-soft);
+  margin: 20px 0 8px; padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+}
+.cg-section-title .spacer { flex: 1; }
+
+/* 觸控裝置沒有滑鼠,無法「靠近底部」:改為常駐並讓出高度 */
+@media (hover: none) {
+  :root { --banner-h: 46px; }
+  .site-banner { transform: none; }
+  .lookup-panel { bottom: 62px; }
+}
+
+/* ---------- 窄螢幕:三欄改為上下堆疊 ---------- */
+@media (max-width: 980px) {
+  .workspace { flex-direction: column; overflow-y: auto; }
+  .workspace > .col {
+    flex: none !important; width: 100% !important;
+    height: 100%;                      /* 每一欄剛好是工作區(頂列與切換列以下)的高度 */
+    min-height: 420px;
+    border-bottom: 6px solid var(--bg);
+  }
+  .mobile-jump { display: flex; }
+  .workspace > .divider, .col-strip, .col-collapse { display: none !important; }
+  .workspace.reader-c #panelReader,
+  .workspace.mid-c #panelChat,
+  .workspace.side-c #panelSide { display: flex; }
+  .workspace.stage-guide #panelSide { height: auto; min-height: 320px; max-height: 70vh; }
+  .reader-body { padding: 22px 22px 20px 28px; }
+  .chat-body, .briefing-scroll { padding: 18px 16px; }
+  .composer { padding: 10px 12px 12px; }
+  .brief-foot { padding: 10px 16px 14px; }
+  #panelChat .col-head { padding-left: 16px; }
+  /* 加上底部橫幅高度(觸控裝置常駐 46px),面板才不會被橫幅蓋住 */
+  .lookup-panel { right: 8px; bottom: calc(16px + var(--banner-h)); left: 8px; width: auto; }
+  .sb-inner { padding: 6px 12px; gap: 10px; }
+  .sb-org { display: none; }
+  .sb-links { font-size: 10.5px; }
+  .sb-logos img { height: 20px; }
+  .sb-logos img.sb-hai { height: 24px; }
+  .course-gate { padding: 3vh 12px 90px; }
+  .cg-card { padding: 26px 22px; }
+}
+@media (max-width: 640px) {
+  .topbar { gap: 8px; padding: 8px 10px; }
+  .tb-side { flex: 1 1 auto; }
+  .brand-rule, .brand-tag { display: none; }
+  .brand-name { font-size: 20px; letter-spacing: 1px; }
+  .brand-logo { width: 30px; height: 28px; }
+  .seg.stage-tabs button { padding: 0 14px; }
+  .tb-right .btn { padding: 0 10px; }
+  .col-head { padding-left: 14px; flex-wrap: wrap; }
+  .help-main { padding: 18px 18px; }
+  .dlg-head { padding-left: 18px; }
+  .dlg-body, .dlg-foot { padding-left: 18px; padding-right: 18px; }
+}
+@media (max-width: 380px) {
+  .brand-name { display: none; }
+  .seg.stage-tabs button { padding: 0 12px; font-size: 13px; }
+  .tb-right .btn { font-size: 13px; padding: 0 8px; }
+}
+
+/* 使用者在系統設定「減少動態效果」時,關掉動畫與轉場 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
+}
+
+
+
+/* 「⋯」選單項目前的單色線條圖示(與後台帳號選單同一風格) */
+.pop-menu button:has(.mi) { display: flex; align-items: center; gap: 10px; }
+.pop-menu .mi { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+
+/* ---------- 我的書架(點讀本標題後的主畫面) ---------- */
+.shelf {
+  position: fixed; inset: 0; z-index: 70;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+}
+.shelf.hidden { display: none; }
+.shelf-top {
+  display: flex; align-items: center; gap: 12px;
+  height: var(--topbar-h); padding: 0 20px;
+  background: var(--panel); border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.shelf-brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.shelf-body { flex: 1; min-height: 0; overflow-y: auto; }
+.shelf-inner { max-width: 1040px; margin: 0 auto; padding: 36px 24px 100px; }   /* 底部留給浮動 banner(同 .course-gate) */
+.shelf-hero { text-align: center; margin-bottom: 22px; }
+.shelf-hero h2 { font-family: var(--serif); font-size: 28px; font-weight: 700; letter-spacing: 4px; color: var(--ink); }
+.shelf-sub { margin-top: 8px; font-size: 14px; color: var(--ink-soft); }
+.shelf-tools {
+  position: relative; max-width: 520px; margin: 0 auto 30px;
+}
+.shelf-tools input {
+  width: 100%; height: 46px; padding: 0 18px 0 44px;
+  border: 1px solid var(--line); border-radius: 23px;
+  background: var(--panel); font: inherit; font-size: 15px; color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.shelf-tools input:focus { outline: none; border-color: var(--verm-line); box-shadow: 0 2px 10px rgba(31,27,26,.10); }
+.shelf-search-ic { position: absolute; left: 17px; top: 15px; color: var(--ink-faint); }
+.shelf-grid {
+  display: grid; gap: 28px 22px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.book-item { position: relative; min-width: 0; }
+.book {
+  position: relative; display: flex; width: 100%; flex-direction: column; gap: 10px;
+  border: 0; background: none; padding: 0; text-align: left; cursor: pointer;
+  font: inherit; color: inherit; min-width: 0;
+}
+.book-cover {
+  position: relative; aspect-ratio: 3 / 4; border-radius: 4px 10px 10px 4px;
+  background: var(--cv, var(--accent));
+  box-shadow: inset 7px 0 0 rgba(0,0,0,.14), inset 9px 0 0 rgba(255,255,255,.10), 0 2px 6px rgba(31,27,26,.14);
+  overflow: hidden; transition: transform .18s, box-shadow .18s;
+}
+.book:hover .book-cover, .book:focus-visible .book-cover {
+  transform: translateY(-4px);
+  box-shadow: inset 7px 0 0 rgba(0,0,0,.14), inset 9px 0 0 rgba(255,255,255,.10), 0 10px 22px rgba(31,27,26,.20);
+}
+.book-cover .bc-title {
+  position: absolute; top: 14%; right: 16%; bottom: 14%;
+  writing-mode: vertical-rl; font-family: var(--serif); font-weight: 700;
+  font-size: 17px; letter-spacing: 3px; line-height: 1.3; color: #fff;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.book-cover .bc-rule { position: absolute; left: 22%; top: 12%; bottom: 12%; width: 1px; background: rgba(255,255,255,.35); }
+.book-cover .bc-mark { position: absolute; left: 14px; bottom: 12px; font-family: var(--serif); font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,.75); }
+.book-cover .bc-badge {
+  position: absolute; left: 14px; top: 12px; padding: 2px 8px; border-radius: 10px;
+  background: rgba(255,255,255,.92); color: var(--accent); font-size: 11px; font-weight: 700;
+}
+.book-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding-right: 26px; }
+.book-name { font-family: var(--serif); font-size: 15px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.book-meta { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+.book-del {
+  position: absolute; right: 0; bottom: 2px; width: 26px; height: 26px; border: 0; border-radius: 6px;
+  background: none; color: var(--ink-faint); cursor: pointer; opacity: 0; transition: opacity .15s;
+}
+.book-item:hover .book-del, .book-item:focus-within .book-del { opacity: 1; }
+.book-del:hover { color: var(--branch); background: var(--sub); }
+@media (hover: none) { .book-del { opacity: 1; } }
+.book.new .book-cover {
+  background: var(--panel); border: 1.5px dashed var(--line); box-shadow: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  color: var(--ink-soft);
+}
+.book.new:hover .book-cover { border-color: var(--verm-line); color: var(--accent); box-shadow: none; }
+.book.new .bn-plus { width: 46px; height: 46px; border-radius: 50%; background: var(--verm-wash); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+.book.new .bn-text { font-size: 14px; font-weight: 500; }
+.book.new .book-info { padding-right: 0; }
+.shelf-empty { grid-column: 1 / -1; text-align: center; padding: 30px 0; color: var(--ink-soft); font-size: 14px; }
+.shelf-note { margin-top: 40px; text-align: center; font-size: 12px; color: var(--ink-faint); }
+@media (max-width: 640px) {
+  .shelf-top { padding: 0 12px; }
+  .shelf-inner { padding: 24px 16px 100px; }
+  .shelf-hero h2 { font-size: 23px; }
+  .shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 16px; }
+}
+
+/* 匯出筆記從「回顧」視窗開啟時要疊在回顧視窗上面;心智圖選項沒有資料時變淡 */
+#exportOverlay { z-index: 95; }
+.ex-note { margin-left: 6px; font-size: 12px; color: var(--ink-faint); }
+.check-row.is-off { opacity: .55; }
+
+/* ================= 四個階段：導讀 → 閱讀 → 對話 → 回顧（電腦與平板） =================
+   導讀、閱讀是置中、背後暗色的全版畫面；對話沿用三欄工作區（手機沿用手機版畫面，這段樣式不影響） */
+.stage-view {
+  flex: 1 1 auto; min-height: 0; position: relative; overflow: hidden;
+  display: flex; color: #F3EEE9;
+  background: radial-gradient(1100px 520px at 50% -8%, #3B3330 0%, #292321 62%, #211C1B 100%);
+}
+.stage-view.hidden { display: none !important; }
+.workspace.stage-away { display: none; }
+body[data-stage="guide"] .mobile-jump, body[data-stage="read"] .mobile-jump { display: none !important; }
+
+/* ---- 導讀頁 ---- */
+.gv-scroll { flex: 1; overflow-y: auto; padding: 30px 24px 48px; }
+.gv-wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.gv-main { background: var(--panel); color: var(--ink); border-radius: 18px; padding: 26px 34px 28px; box-shadow: 0 22px 60px rgba(0,0,0,.38); }
+.gv-head h2 { font-family: var(--serif); font-size: 25px; line-height: 1.4; margin: 8px 0 14px; letter-spacing: .02em; }
+.guide-view .briefing { display: block; }
+.guide-view .briefing-scroll { overflow: visible; padding: 0; gap: 18px; }
+.guide-view .brief-foot { display: none; }
+.guide-view .card-text { font-size: 15.5px; line-height: 2; }
+.gv-actions { display: flex; justify-content: flex-end; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
+.gv-actions .btn { height: 44px; padding: 0 26px; font-size: 15px; }
+.gv-side { position: sticky; top: 0; }
+.skip-btn { width: 100%; margin-top: 4px; padding: 11px 12px; border-radius: 10px; font: inherit; font-size: 13.5px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); color: #FFF; }
+.skip-btn:hover { background: rgba(255,255,255,.2); }
+
+/* ---- 閱讀頁 ---- */
+.read-view { justify-content: center; }
+.rv-wrap { width: min(980px, 100%); height: 100%; min-height: 0; display: flex; flex-direction: column; padding: 14px 24px 18px; }
+.rv-btn { height: 30px; padding: 0 13px; border-radius: 8px; font: inherit; font-size: 13px; border: 1px solid rgba(255,255,255,.24); background: rgba(255,255,255,.09); color: #F6F1EC; }
+.rv-btn:hover { background: rgba(255,255,255,.18); }
+.rv-count { font-weight: 700; margin-left: 2px; }
+.rv-slot { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.rv-slot > #panelReader {
+  flex: 1 1 auto !important; height: auto; min-height: 0; width: 100%;
+  border-radius: 14px 14px 0 0; overflow: hidden; box-shadow: 0 22px 60px rgba(0,0,0,.42);
+}
+.read-view #btnCollapseReader { display: none; }
+.read-view .reader-body { padding: 38px 60px 30px 96px; font-size: calc(var(--reader-size, 17px) * 1.06); line-height: 2.15; }
+.read-view .reader-body p.rp::before { left: -76px; top: .5em; }
+
+/* 書籤：放在讀本最左側的留白。實心 = 目前進度；淡色 = 上次討論到這；淺底色 = 這次新讀的範圍 */
+.read-view .reader-body.bm-pointer { cursor: pointer; }
+.read-view .reader-body p.rp::after {
+  content: ""; position: absolute; left: -42px; top: .62em; width: 15px; height: 19px; opacity: 0; transition: opacity .12s;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M3 2h10v16l-5-4-5 4z' fill='none' stroke='%237A2331' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.read-view .reader-body p.rp.bm-hot::after { opacity: .5; }
+.read-view .reader-body p.rp.bm-from::after {
+  opacity: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M3 2h10v16l-5-4-5 4z' fill='%23E4D9D2' stroke='%23B9ADA4' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.read-view .reader-body p.rp.bm-cur::after {
+  opacity: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M3 2h10v16l-5-4-5 4z' fill='%237A2331' stroke='%237A2331' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.read-view .reader-body p.rp.bm-range { background: rgba(122,35,49,.045); box-shadow: -10px 0 0 rgba(122,35,49,.045), 10px 0 0 rgba(122,35,49,.045); }
+.read-view .reader-body p.rp.bm-from { padding-bottom: 14px; margin-bottom: 22px; background-image: linear-gradient(to right, #CBBFB6 55%, transparent 0); background-size: 9px 1.5px; background-repeat: repeat-x; background-position: left bottom; }
+
+/* 筆記抽屜：不遮住文章；存筆記時自動滑出 */
+.rv-notes {
+  position: absolute; top: 0; right: 0; bottom: 0; z-index: 6; width: min(400px, 94vw);
+  display: flex; flex-direction: column; background: var(--panel); color: var(--ink);
+  box-shadow: -14px 0 44px rgba(0,0,0,.4);
+  transform: translateX(104%); visibility: hidden; transition: transform .22s ease, visibility 0s .22s;
+}
+.rv-notes.open { transform: none; visibility: visible; transition: transform .22s ease; }
+.rv-notes > #panelSide { flex: 1 1 auto !important; width: 100%; height: auto; min-height: 0; }
+.read-view #treeSec, .read-view #sideSplitter, .read-view [data-collapse-side] { display: none !important; }
+.rv-notes-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--ink-soft); }
+.rv-notes-close:hover { background: var(--bg); color: var(--ink); }
+.rv-notes .sec-head { padding-right: 46px; }
+
+/* 手機版畫面沿用原本的兩個階段，不顯示新的「閱讀」分頁 */
+@media (max-width: 760px) and (pointer: coarse) { .stage-tabs #btnReading { display: none; } }
+@media (max-width: 980px) {
+  .gv-wrap { grid-template-columns: 1fr; }
+  .gv-side { position: static; }
+  .gv-main { padding: 22px 20px 24px; }
+  .read-view .reader-body { padding: 26px 22px 24px 70px; }
+  .read-view .reader-body p.rp::before { left: -56px; }
+  .read-view .reader-body p.rp::after { left: -30px; }
+  .rv-wrap { padding: 10px 12px 12px; }
+}
+
+/* 寬螢幕:筆記抽屜打開時，閱讀欄在剩下的空間裡重新置中，不被抽屜蓋住 */
+.read-view { transition: padding-right .22s ease; }
+@media (min-width: 1240px) { .read-view.notes-open { padding-right: 400px; } }
+
+/* ---- 閱讀頁：安靜版面（標籤收進頂列「≡」選單，底部只留簡短的進度） ---- */
+body[data-stage="guide"] #rmenuWrap { display: none; }   /* 導讀頁沒有讀本，不顯示讀本功能選單 */
+
+/* ---- 筆記小視窗（閱讀頁）：像選取文字後跳出的小對話框 ---- */
+.note-pop {
+  position: fixed; z-index: 96; width: min(380px, calc(100vw - 24px));
+  display: flex; flex-direction: column; gap: 10px; padding: 12px 14px 12px;
+  background: #2B2725; color: #F3EEE9; border: 1px solid rgba(255,255,255,.12); border-radius: 16px;
+  box-shadow: 0 16px 44px rgba(0,0,0,.45);
+}
+.note-pop[hidden] { display: none; }
+.np-quote {
+  font-family: var(--serif); font-size: 13.5px; line-height: 1.7; color: #D8CEC6;
+  padding-left: 10px; border-left: 3px solid rgba(255,255,255,.28);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.np-row { display: flex; align-items: flex-end; gap: 8px; }
+.np-row textarea {
+  flex: 1; min-width: 0; resize: none; border: 0; outline: 0; background: transparent; color: #FFF;
+  font: inherit; font-size: 14.5px; line-height: 1.6; padding: 4px 2px; max-height: 120px;
+}
+.np-row textarea::placeholder { color: #9E948C; }
+.np-save {
+  flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 10px;
+  background: rgba(255,255,255,.12); color: #FFF;
+}
+.np-save:hover { background: rgba(255,255,255,.24); }
+
+/* ---- 第二輪調整 ---- */
+/* 背景：半透明的暖灰，讓人從白色畫面進來時不突兀 */
+.stage-view { background: rgba(72, 60, 55, .56); backdrop-filter: blur(2px); }
+.gv-main, .rv-wrap > .rv-slot > #panelReader { box-shadow: 0 14px 40px rgba(40,30,26,.22); }
+.rv-btn { background: rgba(255,255,255,.16); color: #FFF; border-color: rgba(255,255,255,.38); }
+/* 流程卡：白字、字不拆行、可點 */
+.fs-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fs-t b { font-size: 15.5px; line-height: 1.4; color: #FFF; }
+.fs-t small { font-size: 13px; line-height: 1.5; color: #FFF; opacity: .9; white-space: nowrap; }
+.skip-btn { color: #FFF; background: rgba(255,255,255,.16); word-break: keep-all; }
+/* 頂列：品牌、文本在左，階段分頁置中，「⋯」在右 */
+.rc-top .brand-tag, .rc-top .brand-rule { display: none; }
+.rc-top .stage-tabs { margin-left: 0; flex: none; }
+.rc-top .tb-left { flex: 1 1 0; }
+.rc-top .tb-right { flex: 1 1 0; justify-content: flex-end; }
+/* 簡易查詢（閱讀頁）：貼在選取文字旁邊 */
+.lookup-panel.lk-float { position: fixed; right: auto; bottom: auto; }
+
+/* ---- 第三輪調整 ---- */
+/* 流程卡：回到原本的連線樣式、不可點 */
+/* 書籤：沿用原本的小紅色書籤；兩張亮起＝範圍，只有一張＝從頭到這裡 */
+.read-view .reader-body p.rp.bm-head::after { opacity: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M3 2h10v16l-5-4-5 4z' fill='%237A2331' stroke='%237A2331' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.read-view .reader-body p.rp.bm-range { background: rgba(122,35,49,.06); box-shadow: inset 3px 0 0 rgba(122,35,49,.55), -10px 0 0 rgba(122,35,49,.06), 10px 0 0 rgba(122,35,49,.06); }
+/* 簡易查詢（閱讀頁）：靠右、窄窄一欄，只顯示查的字與答案 */
+.lookup-panel.lk-dock { position: fixed; left: auto; right: 16px; top: 140px; bottom: auto; width: 320px; max-height: min(60vh, 520px); }
+.lookup-panel.lk-dock .lk-note { display: none; }
+.lookup-panel.lk-dock .lk-q { display: none; }
+.lookup-panel.lk-dock .lk-answer { max-height: 38vh; overflow: auto; font-size: 14px; }
+.lk-q { padding: 8px 14px; font-family: var(--serif); font-size: 14px; color: var(--ink-soft); border-left: 3px solid var(--line); margin: 8px 14px 0; background: var(--bg); border-radius: 0 6px 6px 0; }
+.lk-q[hidden] { display: none; }
+@media (min-width: 1240px) { .read-view.lk-open { padding-right: 350px; } }
+/* 「≡」選單：沒有的功能不顯示，記號說明放最底 */
+.reader-menu button:disabled { opacity: .42; }
+.reader-menu button small { display: none; }
+.reader-menu button[role="menuitem"] { padding-top: 7px; padding-bottom: 7px; }
+.reader-menu #rmLegend { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 10px; }
+/* 更換文本視窗：精簡 */
+.up-dialog .dlg-sub { display: none; }
+.up-dialog .dropzone { padding-top: 22px; padding-bottom: 22px; gap: 8px; }
+.up-dialog .up-terms { font-size: 12px; color: var(--ink-faint); background: none; padding: 0; }
+.up-dialog .check-block { margin-top: 4px; }
+
+/* ---- 第四輪調整 ---- */
+.flow-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; }
+.flow-toggle svg { transition: transform .15s; }
+.gv-actions .btn { min-width: 150px; }
+/* 導讀頁的重點畫記 */
+mark.bhl { background: var(--hl); color: inherit; border-radius: 2px; padding: 0 1px; }
+/* 筆記小視窗：白色卡片，和簡易查詢同一個位置與樣式 */
+.note-pop { background: var(--panel); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 16px 44px rgba(40,30,26,.28); }
+.np-quote { color: var(--ink-soft); border-left-color: var(--line); font-size: 14px; }
+.np-row textarea { color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--bg); }
+.np-row textarea::placeholder { color: var(--ink-faint); }
+.np-save { background: var(--accent); color: #FFF; }
+.np-save:hover { background: var(--accent-deep, #5E1A27); }
+.note-pop.np-dock { right: 16px; left: auto; top: 140px; width: 320px; }
+/* 閱讀回顧：背景加深加糊，不干擾閱讀 */
+#summaryOverlay { background: rgba(38, 32, 30, .82); backdrop-filter: blur(10px); }
+
+/* ---- 第五輪調整 ---- */
+/* 使用流程卡：白色卡片、深紅重點，和文章卡片同一套配色 */
+
+/* 導讀頁的右側欄：不用 .read-view 的位移，直接浮在右側 */
+.guide-view ~ .note-pop.np-dock, .note-pop.np-dock { z-index: 96; }
+
+/* ---- 書籤（第六輪）：放在段落與段落之間的一條線，點一下放上、再點取消 ---- */
+.bm-gap { display: none; }
+.read-view .reader-body .bm-gap { display: block; position: relative; height: 36px; cursor: pointer; }
+.read-view .reader-body p.rp { margin-bottom: 0; }
+.read-view .reader-body p.rp::after { display: none !important; }
+.read-view .reader-body p.rp.bm-range { background: rgba(122,35,49,.055); box-shadow: -10px 0 0 rgba(122,35,49,.055), 10px 0 0 rgba(122,35,49,.055); }
+.bm-gap::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed rgba(122,35,49,.5); opacity: 0; transition: opacity .1s; }
+.bm-gap::after {
+  content: "＋ 在這裡放書籤"; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  padding: 1px 12px; border-radius: 13px; background: #FFF; color: var(--accent); border: 1px solid var(--accent);
+  font: 600 12.5px/1.7 "Noto Sans TC", system-ui, sans-serif; text-indent: 0; letter-spacing: 0; white-space: nowrap; opacity: 0; transition: opacity .1s;
+}
+.bm-gap:hover::before, .bm-gap:hover::after { opacity: 1; }
+.bm-gap[data-lab]::before { opacity: 1; border-top: 2px solid var(--accent); }
+.bm-gap[data-lab]::after { content: attr(data-lab); opacity: 1; background: var(--accent); color: #FFF; }
+.bm-gap[data-lab]:hover::after { content: "✕ 取消書籤"; }
+@media (pointer: coarse) { .bm-gap::before { opacity: .4; border-top-width: 1px; } }
+
+/* ---- 複製鈕：圖示 ---- */
+.btn.icon-only { width: 40px; padding: 0; display: inline-grid; place-items: center; }
+.btn.small.icon-only { width: 34px; height: 30px; }
+/* ---- 閱讀頁的目錄（左側抽屜） ---- */
+.rv-toc {
+  position: absolute; top: 0; left: 0; bottom: 0; z-index: 6; width: 270px;
+  display: flex; flex-direction: column; background: var(--panel); color: var(--ink);
+  box-shadow: 14px 0 44px rgba(0,0,0,.28);
+  transform: translateX(-104%); visibility: hidden; transition: transform .22s ease, visibility 0s .22s;
+}
+.rv-toc.open { transform: none; visibility: visible; transition: transform .22s ease; }
+@media (min-width: 1240px) { .read-view.toc-open { padding-left: 290px; } }
+.toc-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 6px 18px; font-weight: 700; font-size: 15px; }
+.toc-head .rv-notes-close { position: static; }
+.toc-hint { padding: 0 18px 10px; font-size: 12px; line-height: 1.6; color: var(--ink-faint); border-bottom: 1px solid var(--line); }
+.toc-list { flex: 1; overflow-y: auto; padding: 6px 8px 16px; }
+.toc-item { display: flex; align-items: stretch; border-radius: 8px; border-left: 3px solid transparent; }
+.toc-item.lv2 { padding-left: 12px; } .toc-item.lv3 { padding-left: 24px; }
+.toc-item.in-range { background: rgba(122,35,49,.06); }
+.toc-item.active { border-left-color: var(--accent); }
+.toc-go { flex: 1; min-width: 0; text-align: left; padding: 8px 8px 8px 8px; border: 0; background: none; font: inherit; font-size: 13.5px; line-height: 1.45; color: var(--ink); cursor: pointer; border-radius: 8px; }
+.toc-go:hover { background: var(--bg); }
+.toc-go small { display: block; font-size: 11.5px; color: var(--ink-faint); margin-top: 1px; }
+.toc-bm { flex: none; width: 34px; border: 0; background: none; color: var(--ink-faint); cursor: pointer; display: grid; place-items: center; border-radius: 8px; }
+.toc-bm:hover { color: var(--accent); background: var(--bg); }
+.toc-item.has-bm .toc-bm { color: var(--accent); }
+.toc-item.has-bm .toc-bm svg path { fill: var(--accent); }
+
+/* ---- 第七輪：讀本內不放書籤、圓形圖示鈕、複製圖示 ---- */
+.read-view .reader-body p.rp { margin-bottom: 18px; }
+.round-btn { position: relative; flex: none; width: 36px; height: 36px; border-radius: 50%; display: inline-grid; place-items: center; padding: 0;
+  border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.16); color: #FFF; cursor: pointer; }
+.round-btn:hover, .round-btn[aria-expanded="true"] { background: rgba(255,255,255,.32); }
+.round-btn .rv-count { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; margin: 0; border-radius: 9px;
+  background: var(--accent); color: #FFF; font-size: 11px; line-height: 18px; text-align: center; font-weight: 700; }
+.round-btn .rv-count:empty { display: none; }
+/* 複製：圓形圖示，放在內容右上角 */
+.copy-wrap { position: relative; }
+.copy-ico { position: absolute; top: 8px; right: 10px; z-index: 2; width: 32px; height: 32px; display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 50%; background: var(--panel); color: var(--ink-soft); cursor: pointer; }
+.copy-ico:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+.copy-ico:disabled { opacity: .4; cursor: default; }
+.lk-body { position: relative; }
+.lk-tools .copy-ico { top: 6px; right: 10px; }
+.lookup-panel .lk-answer { padding-right: 52px; }
+.copy-wrap .summary-body { padding-right: 52px; }
+
+/* ---- 目錄：和「建議的使用流程」同樣的步驟樣式，放在左側的白色卡片，可完全收合 ---- */
+.rv-toc { left: 16px; top: 16px; bottom: 16px; width: 288px; border-radius: 18px; box-shadow: 0 14px 40px rgba(40,30,26,.3); transform: translateX(-112%); }
+.rv-toc.open { transform: none; }
+@media (min-width: 1240px) { .read-view.toc-open { padding-left: 320px; } }
+.toc-head { padding: 18px 14px 4px 20px; font-size: 15.5px; letter-spacing: .04em; }
+.toc-hint { border-bottom: 0; padding: 0 20px 8px; }
+.toc-list { padding: 6px 12px 18px; }
+.toc-item { position: relative; display: flex; align-items: flex-start; gap: 10px; padding: 0 0 12px; border: 0; border-radius: 0; background: none !important; }
+.toc-item.lv2, .toc-item.lv3 { padding-left: 0; }
+.toc-item.lv2 .toc-go { padding-left: 18px; } .toc-item.lv3 .toc-go { padding-left: 30px; }
+.toc-item:not(:last-child)::before { content: ""; position: absolute; left: 13px; top: 30px; bottom: 0; width: 2px; background: var(--line); }
+.toc-n { position: relative; z-index: 1; flex: none; width: 28px; height: 28px; margin-top: 4px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 12.5px; font-weight: 700; background: var(--sub); color: var(--ink-soft); }
+.toc-item.active .toc-n { background: var(--accent); color: #FFF; }
+.toc-item.in-range .toc-n { box-shadow: 0 0 0 3px rgba(122,35,49,.2); }
+.toc-item.in-range .toc-go { background: rgba(122,35,49,.07); }
+.toc-go { padding: 6px 8px; }
+.toc-bm { margin-top: 2px; height: 34px; }
+.flow-toggle:focus { outline: none; }
+.flow-toggle:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+body[data-stage="read"] #rmChapters { display: none; }   /* 閱讀頁的目錄在左側卡片，選單裡不重複 */
+
+/* ---- 左右兩側風格統一：目錄與筆記都是浮在兩側的白色圓角卡片 ---- */
+.rv-notes { top: 16px; right: 16px; bottom: 16px; width: min(400px, calc(100vw - 32px)); border-radius: 18px; overflow: hidden; box-shadow: 0 14px 40px rgba(40,30,26,.3); transform: translateX(112%); }
+.rv-notes.open { transform: none; }
+@media (min-width: 1240px) { .read-view.notes-open { padding-right: 432px; } }
+.read-view { transition: padding .22s ease; }
+.rv-toc, .rv-notes { background: var(--panel); }
+.rv-toc .toc-head, .rv-notes .sec-head { min-height: 56px; }
+/* 「對話」鈕拉到最右邊，進度文字在最左 */
+/* 切換階段：淡入，不閃爍 */
+.stage-view:not(.hidden) { animation: stageIn .18s ease-out; }
+@keyframes stageIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .stage-view:not(.hidden), .read-view { animation: none; transition: none; } }
+.round-btn:focus { outline: none; }
+.round-btn:focus-visible { outline: 2px solid #FFF; outline-offset: 2px; }
+
+/* 筆記小卡與簡易查詢欄：寬度和左緣都與筆記總覽相同，同一個位置、不會疊在一起 */
+.read-view ~ .note-pop.np-dock, .note-pop.np-dock, .lookup-panel.lk-dock { width: min(400px, calc(100vw - 32px)); }
+@media (min-width: 1240px) { .read-view.lk-open { padding-right: 432px; } }
+
+/* ---- 導讀頁：使用流程在左邊（和閱讀頁左側的目錄卡片同寬、同位置） ---- */
+@media (min-width: 981px) {
+  .gv-wrap { grid-template-columns: 288px minmax(0, 1fr); }
+  .gv-side { order: -1; }
+}
+
+/* ---- 導讀頁（第三輪）：使用流程是左側卡片，和閱讀頁的目錄同款，用圓形按鈕打開、可完全收合 ---- */
+.gv-wrap { display: block; max-width: 880px; margin: 0 auto; }
+.guide-view { transition: padding .22s ease; }
+@media (min-width: 1240px) { .guide-view.flow-open { padding-left: 320px; } .guide-view.lk-open { padding-right: 432px; } }
+@media (prefers-reduced-motion: reduce) { .guide-view { transition: none; } }
+
+/* ---- 導讀頁：捲動條挪到內容卡片的右緣（不再貼在視窗最右邊），標題與「開始閱讀」固定、中間內容捲動 ---- */
+.gv-scroll { overflow: hidden; display: flex; flex-direction: column; padding: 4px 24px 22px; }
+.gv-wrap { flex: 1; min-height: 0; width: 100%; display: flex; }
+.gv-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#guideMain { flex: 1; min-height: 0; overflow-y: auto; margin-right: -12px; padding-right: 12px; }
+.gv-actions { flex: none; }
+/* 捲動條：細、低調，不搶眼 */
+#guideMain, .reader-body, .rv-notes, .toc-list { scrollbar-width: thin; scrollbar-color: rgba(122,35,49,.3) transparent; }
+#guideMain::-webkit-scrollbar, .reader-body::-webkit-scrollbar, .toc-list::-webkit-scrollbar { width: 8px; }
+#guideMain::-webkit-scrollbar-thumb, .reader-body::-webkit-scrollbar-thumb, .toc-list::-webkit-scrollbar-thumb { background: rgba(122,35,49,.28); border-radius: 4px; }
+#guideMain::-webkit-scrollbar-track, .reader-body::-webkit-scrollbar-track, .toc-list::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- 導讀頁：整頁往下拉（捲動條在內容欄右緣、細），使用流程／目錄卡片依內容高度，不留大片空白 ---- */
+.guide-view { justify-content: center; }
+.gv-scroll { flex: 0 1 928px; margin: 0 auto; overflow-y: auto; overflow-x: hidden; display: block; padding: 4px 24px 56px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.55) transparent; }
+.gv-scroll::-webkit-scrollbar { width: 8px; }
+.gv-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.55); border-radius: 4px; }
+/* 導讀頁:拿掉左上角的流程鈕與「第 1 步」那一列,導讀框往上提;開始閱讀改為框內右下角的懸浮按鈕 */
+.guide-view .gv-scroll { padding-top: 22px; }
+.gv-fab { position: sticky; bottom: 22px; z-index: 6; display: flex; justify-content: flex-end; height: 0; overflow: visible; pointer-events: none; }
+.gv-fab .gv-start { pointer-events: auto; transform: translateY(-100%); height: 46px; padding: 0 28px; font-size: 15px; border-radius: 23px; box-shadow: 0 8px 22px rgba(122,35,49,.35); }
+.gv-main { padding-bottom: 76px; }
+.gv-wrap { display: block; }
+.gv-main { display: block; }
+#guideMain { overflow: visible; margin-right: 0; padding-right: 0; flex: none; }
+.rv-toc { bottom: auto; max-height: calc(100% - 32px); }
+.rv-toc .toc-list { min-height: 0; }
+
+/* 使用流程卡：高度依內容，不留一大片空白 */
+
+/* 「開始閱讀」固定在視窗下緣：不用捲到導讀最底才能開始 */
+.gv-actions { position: sticky; bottom: 0; z-index: 4; margin: 18px -34px -28px; padding: 14px 34px; background: var(--panel); border-top: 1px solid var(--line-soft); border-radius: 0 0 18px 18px; }
+
+/* ---- 導讀頁（定版）：上方一列固定（使用流程鈕、步驟、開始閱讀），只有內容卡片在下方捲動；不再有蓋住文字的浮動條 ---- */
+.gv-scroll { overflow: hidden; display: flex; flex-direction: column; padding: 4px 24px 20px; }
+.gv-wrap { flex: 1; min-height: 0; width: 100%; max-width: 880px; margin: 0 auto; overflow-y: auto; overflow-x: hidden; padding-right: 4px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.6) transparent; }
+.gv-wrap::-webkit-scrollbar { width: 8px; }
+.gv-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,.6); border-radius: 4px; }
+.gv-wrap::-webkit-scrollbar-track { background: transparent; }
+.gv-actions { position: static; margin: 18px 0 0; padding: 18px 0 0; background: none; border-radius: 0; border-top: 1px solid var(--line-soft); }
+
+/* 導讀頁：只有上方一個「開始閱讀」；捲動條細而淡，不搶眼 */
+.gv-wrap { scrollbar-color: rgba(255,255,255,.28) transparent; padding-right: 6px; }
+.gv-wrap::-webkit-scrollbar { width: 6px; }
+.gv-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,.28); border-radius: 3px; }
+.gv-wrap:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,.5); }
+
+/* 閱讀頁的「開始對話」放到上方列最右邊（和導讀頁的「開始閱讀」同位置、同樣式）；底部只剩進度文字 */
+.rv-go { display: inline-flex; margin-left: 6px; }
+.rv-go #btnBriefDone { width: auto; height: 36px; padding: 0 20px; margin: 0; }
+
+.rv-go { margin-left: 0; margin-right: 6px; }
+
+/* 閱讀頁:拿掉上方一列(目錄圓鈕、「第 2 步」、提示),文本框往上提;目錄改由「≡」選單打開;
+   筆記與開始對話改為文本框右下角的懸浮按鈕,捲動時固定 */
+.read-view .rv-wrap { padding-top: 22px; }
+body:not([data-stage="read"]) #rmReadToc { display: none; }
+.rv-slot { position: relative; }
+.rv-fab { position: absolute; right: 26px; bottom: 18px; z-index: 6; display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.rv-fab > * { pointer-events: auto; }
+.rv-fab .rv-go { margin: 0; }
+.rv-fab .rv-go #btnBriefDone { height: 46px; padding: 0 28px; font-size: 15px; border-radius: 23px; box-shadow: 0 8px 22px rgba(122,35,49,.35); }
+.rv-fab .round-btn { width: 46px; height: 46px; background: var(--panel); color: var(--ink-2); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(40,30,26,.18); }
+.rv-fab .round-btn:hover, .rv-fab .round-btn[aria-expanded="true"] { background: var(--bg); color: var(--ink); }
+.read-view .reader-body { padding-bottom: 96px; }   /* 最後幾行不被懸浮按鈕蓋住 */
+
+/* ---- 筆記小卡（存成筆記）：可修改內容與註記，和簡易查詢同一個位置與樣式 ---- */
+.note-pop { gap: 8px; padding: 14px 16px 16px; }
+.np-head { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 15px; }
+.np-x { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--ink-soft); cursor: pointer; }
+.np-x:hover { background: var(--bg); color: var(--ink); }
+.np-lab { font-size: 12.5px; color: var(--ink-faint); margin-top: 2px; }
+.note-pop textarea { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--bg); color: var(--ink); font: inherit; font-size: 14.5px; line-height: 1.65; }
+.note-pop textarea:focus { outline: none; border-color: var(--accent); }
+.np-actions { display: flex; justify-content: flex-end; }
+.np-actions .btn { height: 36px; padding: 0 22px; }
+/* 筆記總覽：大的筆記欄 */
+.rv-notes { width: min(580px, calc(100vw - 32px)); font-size: 15px; }
+@media (min-width: 1240px) { .read-view.notes-open { padding-right: 612px; } }
+
+/* 「≡」選單裡的目錄：和閱讀頁的目錄一樣的步驟樣式 */
+.reader-menu .rm-list { padding: 4px 6px 8px; }
+.reader-menu .rm-toc { position: relative; display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 6px 8px 12px; text-align: left; border-radius: 8px; white-space: normal; }
+.reader-menu .rm-toc:hover { background: var(--bg); }
+.reader-menu .rm-toc:not(:last-child)::before { content: ""; position: absolute; left: 21px; top: 34px; bottom: -2px; width: 2px; background: var(--line); }
+.reader-menu .rm-toc .toc-n { margin-top: 0; }
+.reader-menu .rm-toc .toc-t { flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink); }
+.reader-menu .rm-toc small { display: block; font-size: 11.5px; color: var(--ink-faint); margin: 1px 0 0; }
+
+/* 導讀頁:和閱讀頁一樣,框固定、內容在框內的 .gv-body 捲動——往下拉時上方兩個圓角不會被切掉
+   (原本是外層 .gv-wrap 在捲,整張卡片被裁成直角);「開始閱讀」絕對定位在框的右下角 */
+.guide-view .gv-wrap { overflow: visible; display: flex; flex-direction: column; padding-right: 0; }
+.guide-view .gv-main { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: 18px; padding: 0; }
+.gv-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 26px 34px 96px;
+  scrollbar-width: thin; scrollbar-color: rgba(122,35,49,.3) transparent; }
+.gv-body::-webkit-scrollbar { width: 8px; }
+.gv-body::-webkit-scrollbar-thumb { background: rgba(122,35,49,.28); border-radius: 4px; }
+.gv-body::-webkit-scrollbar-track { background: transparent; margin: 14px 0; }
+.guide-view .gv-fab { position: absolute; right: 30px; bottom: 22px; height: auto; }
+.guide-view .gv-fab .gv-start { transform: none; }
+
+/* 分段共讀:對話頁讀本只顯示這一段;目錄裡已對話過的節淡色標示 */
+.reader-body .seg-bar { display: flex; align-items: center; gap: 10px; margin: -6px 0 20px; padding: 8px 12px; border-radius: 8px;
+  background: var(--tip); font-family: var(--sans); font-size: 13px; color: var(--ink-soft); }
+.reader-body .seg-bar .link-btn { margin-left: auto; font-size: 13px; color: var(--accent); }
+.reader-body p.rp.out-seg { opacity: .38; }
+.toc-item.talked .toc-go { color: var(--ink-faint); }
+.toc-item.talked .toc-go small::after { content: "・曾和讀伴討論過"; color: var(--ink-faint); }
+
+/* 分段共讀:書籤圖示可按住拖曳選範圍 */
+.toc-bm { touch-action: none; }
+
+/* 圖說、表說旁的小圖示:開原檔 */
+.reader-body p.rp .fig-orig { display: inline-grid; place-items: center; vertical-align: -3px; margin-left: 6px; width: 24px; height: 24px; padding: 0;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--card, #fff); color: var(--accent); cursor: pointer; user-select: none; }
+.reader-body p.rp .fig-orig:hover { background: var(--bg); }
+
+/* 讀本裡的表格(docx/PDF 的表格解析成「欄 | 欄」逐列文字,畫成表格;「 | 」留作隱藏文字以維持字元位置) */
+.reader-body p.rp.rtable { overflow-x: auto; }
+.reader-body p.rp .tb { display: table; border-collapse: collapse; font-size: .9em; line-height: 1.6; min-width: 60%; }
+.reader-body p.rp .tr { display: table-row; }
+.reader-body p.rp .td { display: table-cell; border: 1px solid var(--line); padding: 5px 10px; vertical-align: top; }
+.reader-body p.rp .tr:first-child .td { font-weight: 600; background: rgba(122,35,49,.05); }
+.reader-body p.rp .tsep { display: none; }
+.reader-body p.rp.rtable, .reader-body p.rp .td { text-indent: 0; }
+
+/* 目錄與書籤上方:這次對話的範圍(原本在閱讀頁下方) */
+.toc-status { padding: 0 20px 8px; font-size: 12.5px; line-height: 1.6; color: var(--accent); cursor: pointer; }
+.toc-status:empty { display: none; }
+/* 「≡」選單：儲存進度、看原檔的括號說明要顯示（限課程學生、原檔存放位置）；其他項目的說明仍隱藏 */
+.reader-menu #rmSave small, .reader-menu #rmOrig small { display: inline; }
+
+/* ---- 分段討論：每一段一個顏色；對話樹只展開目前這一段，其他段摺成一行 ---- */
+.tree-row.seg-trunk .tree-dot { background: var(--seg, var(--ink)); }
+.tree-row.seg-trunk.current { box-shadow: inset 3px 0 0 var(--seg, var(--ink)); }
+.tree-row.folded { color: var(--ink-soft); }
+.tree-row.folded .tree-dot, .tree-dot.folded { background: transparent; border: 2px solid var(--seg, var(--ink-soft)); width: 9px; height: 9px; box-sizing: border-box; }
+.tree-row.folded .tree-meta { white-space: nowrap; }
+.crumbs .c-cur.seg-c::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--seg); margin-right: 6px; vertical-align: 0; }
+.reader-body .seg-bar { box-shadow: inset 3px 0 0 var(--seg, var(--accent)); }

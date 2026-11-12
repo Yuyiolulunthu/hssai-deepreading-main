@@ -1,0 +1,25 @@
+# 讀伴 ・ 測試站(https://mentalai-testagents.phys.nthu.edu.tw → 10.0.0.101:3210)
+# 與正式站共用同一個映像,程式目錄另 clone 在 /cluster/workspace/hss_other/hssai-deepreading-test(git 分支 test),
+# data/ 與 config.php 各自獨立。更新:
+#   DUPAN_REPO=/cluster/workspace/hss_other/hssai-deepreading-test DUPAN_COMPOSE=docker-compose.test.yml \
+#   DUPAN_URL_LOCAL=http://10.0.0.101:3210 DUPAN_URL_PUBLIC=https://mentalai-testagents.phys.nthu.edu.tw \
+#   bash /cluster/workspace/hss_other/hssai-deepreading-test/deploy/update.sh
+# name:compose 專案名稱。兩個站的 compose 目錄都叫 deploy、服務都叫 dupan,不另取名的話 compose 會把正式站容器當成同一個專案而重建它
+name: dupan-test
+services:
+  dupan:
+    build: ./
+    image: dupan-web:latest
+    container_name: hssai-deepreading-test
+    restart: unless-stopped
+    ports:
+      - "10.0.0.101:3210:80"
+    volumes:
+      - ../:/var/www/html
+    environment:
+      - TZ=Asia/Taipei
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

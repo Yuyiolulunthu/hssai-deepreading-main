@@ -1,0 +1,470 @@
+/* ============================================================
+   讀伴・手機版介面(≤ 760px 的觸控裝置)
+   疊在 style.css 之後載入,index.html 的 media 條件限定手機才套用;電腦與寬於 760px 的平板不受影響。
+   結構:
+     · 一次只顯示一欄(讀本 / 導讀與對話),底部分頁列 = 導讀｜閱讀｜對話｜回顧
+     · 筆記、對話樹各自是一個可拖曳的浮動面板,由右側浮動按鈕開啟(一次開一個)
+   ============================================================ */
+
+/* 手機專用元件預設不顯示,各自在下方依畫面打開(不符手機條件時由 mobile.js 隱藏) */
+.phone-nav, .fab-dock, .sheet-grip, .sheet-head, .phone-only, #panelTreeSheet, .branch-bar, .sheet-scrim, .tb-act { display: none; }
+
+@media (max-width: 760px) {
+  :root {
+    --nav-h: 52px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --sheet-pad: 0px;           /* 浮動面板開著(未全螢幕)時佔用的高度,由 mobile.js 設定 */
+    --banner-h: 0px;
+  }
+
+  /* ---------- 外框:整頁高度跟著鍵盤(visualViewport)縮放 ---------- */
+  html, body { overscroll-behavior: none; }
+  body {
+    height: var(--app-h, 100dvh);
+    padding-bottom: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  input, textarea, select { font-size: 16px !important; }     /* iOS 低於 16px 會自動放大頁面 */
+  button, .seg button { touch-action: manipulation; }
+
+  /* ---------- 頂列:只留品牌與「⋯」(階段切換已併入底部分頁列) ---------- */
+  .topbar {
+    min-height: 48px; gap: 8px; padding: 6px 10px;
+    flex-wrap: nowrap;
+    transition: margin-top .22s ease;
+  }
+  body.chrome-hidden .topbar { margin-top: calc(-1 * var(--tb-h, 48px)); }   /* 讀本往下捲時收起,往上捲再出現 */
+  .stage-tabs { display: none !important; }
+  .tb-side.brand { flex: 1 1 auto; min-width: 0; }
+  .tb-right { flex: 0 0 auto; }
+  .brand-name { font-size: 19px; letter-spacing: 1px; }
+  .brand-logo { width: 28px; height: 26px; }
+  .brand-tag { display: block; font-size: 11.5px; letter-spacing: 1px; }
+  .brand-rule { display: block; height: 14px; }
+  .icon-btn { width: 40px; height: 40px; }
+  .top-menu { top: 46px; width: min(260px, calc(100vw - 20px)); }
+  .pop-menu button { padding: 13px 12px; font-size: 15px; }
+  .phone-only { display: flex; }
+
+  /* 舊的欄位跳轉列與橫幅:改由底部分頁列與「⋯」選單取代 */
+  .mobile-jump, .site-banner { display: none !important; }
+
+  /* ---------- 工作區:一次一欄 ---------- */
+  .workspace {
+    flex-direction: column; overflow: hidden;
+    padding-bottom: var(--sheet-pad);
+  }
+  .workspace > .col {
+    display: none !important;
+    flex: 1 1 auto !important; width: 100% !important;
+    height: auto !important; min-height: 0 !important;
+    border-bottom: 0;
+  }
+  .workspace > .divider, .workspace > .col-strip, .col-collapse { display: none !important; }
+  .workspace[data-tab="reader"] > #panelReader,
+  .workspace[data-tab="chat"]   > #panelChat { display: flex !important; }
+
+  /* 桌機上折疊的區塊,在手機上一律展開 */
+  .side-sec.folded .sec-body { display: flex !important; }
+
+  /* ---------- 底部分頁列:導讀｜閱讀｜對話｜回顧 ---------- */
+  .phone-nav {
+    display: flex; flex: none;
+    height: calc(var(--nav-h) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    z-index: 50; position: relative;
+  }
+  body.kb-open .phone-nav, body.gate-open .phone-nav { display: none; }   /* 打字時收起,把空間還給輸入框 */
+  .phone-nav button {
+    flex: 1; border: 0; background: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    color: var(--ink-soft); font-size: 11.5px; letter-spacing: .5px;
+    position: relative;
+  }
+  .phone-nav button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .phone-nav button.on { color: var(--accent); font-weight: 700; }
+  .phone-nav button.on::before {
+    content: ""; position: absolute; top: 0; left: 28%; right: 28%; height: 2px;
+    background: var(--accent); border-radius: 0 0 2px 2px;
+  }
+  .phone-nav .pn-dot {
+    position: absolute; top: 7px; left: calc(50% + 9px);
+    width: 8px; height: 8px; border-radius: 50%; background: var(--branch);
+    display: none;
+  }
+  .phone-nav .pn-dot.on { display: block; }
+
+  /* ---------- 讀本:只留文本標題與「≡」讀本功能選單(與電腦版同一個選單),其餘控制項與底部圖例列收起 ---------- */
+  #panelReader .col-head { padding: 6px 6px 6px 12px; min-height: 48px; gap: 4px; }
+  #panelReader .col-head h2 { display: none; }                /* 分頁列已標示「閱讀」 */
+  #panelReader .doc-switch { height: 40px; flex: 1 1 0; min-width: 0; justify-content: flex-start; }
+  #panelReader .col-head .doc-title { font-size: 15px; }
+  #panelReader .col-head .spacer,
+  #panelReader .chapter-sel, #btnReaderFind { display: none !important; }
+  #panelReader .tb-reader { flex: 0 0 auto; }
+  #btnReaderMenu { width: 40px; height: 40px; }
+  #panelReader .reader-menu { left: auto; right: 0; width: min(300px, calc(100vw - 24px)); z-index: 70; }
+  .reader-menu button[role="menuitem"] { min-height: 44px; }
+  .reader-menu .rm-ch { padding-top: 11px; padding-bottom: 11px; }
+  .reader-menu .rm-row .sq-btn { width: 44px; height: 36px; }
+  .reader-menu .reader-legend { flex-wrap: wrap; }
+  .sq-btn { width: 40px; height: 40px; font-size: 13px; }
+  .reader-find { padding: 6px 8px; gap: 4px; }
+  .reader-find input { height: 40px; }
+  .reader-body {
+    padding: 20px 18px 28px 26px;
+    line-height: 2;
+    -webkit-user-select: text; user-select: text;
+    -webkit-touch-callout: none;                              /* 避免長按選字時系統選單蓋住讀伴的工具列 */
+  }
+  .reader-body p.rp { margin-bottom: 16px; }
+  .reader-body p.rp::before { left: -20px; }
+
+  /* ---------- 導讀 / 對話 ---------- */
+  /* 中欄標題列整個收起:畫面名稱底部分頁列已標示,路徑由分支列呈現。
+     只有「進行中的分支」才留一條細列放「保留分支／收束回主幹」。 */
+  #panelChat .col-head { display: none; padding: 4px 10px; min-height: 0; gap: 8px; justify-content: flex-end; }
+  #panelChat.in-branch .col-head { display: flex; }
+  #panelChat .col-head h2, #panelChat .crumbs, #panelChat .col-head .spacer { display: none; }
+  .branch-actions.on { display: flex; gap: 8px; }
+  .branch-actions .mini-btn.tall { height: 34px; padding: 0 12px; font-size: 13.5px; }
+
+  /* 主幹/分支橫向列(分支找回):對話標題下方常駐 */
+  .branch-bar { display: none; }
+  .branch-bar.has { display: flex; align-items: center; flex: none; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .workspace.stage-guide .branch-bar { display: none !important; }
+  .bs-tree {
+    position: relative; flex: none; width: 44px; height: 44px; margin-left: 4px;
+    display: flex; align-items: center; justify-content: center; border: 0; background: none; color: var(--accent);
+  }
+  .bs-tree svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .bs-tree .fab-count { top: 4px; right: 2px; min-width: 17px; height: 17px; font-size: 10.5px; line-height: 17px; padding: 0 4px; }
+  .branch-strip {
+    display: flex; flex: 1; min-width: 0; gap: 6px; padding: 6px 12px 6px 2px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .branch-strip::-webkit-scrollbar { display: none; }
+  .bs-chip {
+    flex: none; display: inline-flex; align-items: center; gap: 6px; max-width: 62vw;
+    height: 32px; padding: 0 11px; border: 1px solid var(--line); border-radius: 16px;
+    background: var(--panel); color: var(--ink-2); font-size: 13px; white-space: nowrap;
+  }
+  .bs-chip.on { background: var(--sub); color: var(--ink); font-weight: 700; border-color: #B9AFA6; }
+  /* 純圖示:主幹 = 樹幹圖示,分支 = 編號圓鈕(進行中=紅色實線圈、已保留=淡底、已收束=灰色虛線) */
+  .bs-chip.icon { width: 38px; height: 38px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; }
+  .bs-chip.icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .bs-chip.icon .bs-no { font-size: 15px; font-weight: 700; line-height: 1; }
+  .bs-chip.icon.trunk { color: var(--ink); }
+  .bs-chip.icon.open { border-color: var(--branch); color: var(--branch); }
+  .bs-chip.icon.kept { border-color: var(--branch); color: var(--branch); background: #FBF1EF; }
+  .bs-chip.icon.merged { color: var(--ink-soft); border-style: dashed; }
+  .bs-chip.icon.on { background: var(--branch); color: #fff; border-color: var(--branch); }
+  .bs-chip.icon.trunk.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .bs-chip.icon.merged.on { background: #8B827D; color: #fff; border-color: #8B827D; border-style: solid; }
+  .bs-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--branch); }
+  .bs-chip.trunk .bs-dot { background: var(--ink); }
+  .bs-chip.kept .bs-dot { background: transparent; border: 1.5px solid var(--branch); }
+  .bs-chip.merged { color: var(--ink-soft); border-style: dashed; }
+  .bs-chip.merged .bs-dot { background: transparent; border: 1.5px solid #B9AFA6; }
+  .branch-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .bp-pill {
+    max-width: 100%; height: 34px; padding: 0 12px; border: 1px solid var(--branch); border-radius: 17px;
+    background: #FBF1EF; color: var(--branch); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bp-pill.merged { border-style: dashed; border-color: #B9AFA6; background: var(--panel); color: var(--ink-soft); }
+
+  .briefing-scroll { padding: 16px 14px; gap: 14px; }
+  .brief-foot { padding: 10px 14px 12px; }
+  .brief-foot .btn.primary { height: 48px; font-size: 16px; }
+  .brief-gate-hint { text-decoration: underline; text-underline-offset: 3px; padding: 6px 0; font-size: 13px; }
+
+  .chat-body { padding: 12px 12px 16px; gap: 14px; }
+  .branch-empty-hint {
+    margin: 0 !important; padding: 8px 12px !important; font-size: 13px !important; line-height: 1.6 !important; text-align: left !important;
+  }
+  .branch-empty-hint .beh-q {                                  /* 引用句最多三行,其餘文字完整顯示,卡片不會露出被切一半的字 */
+    display: -webkit-inline-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; vertical-align: top; max-width: 100%;
+  }
+  .msg.ai { max-width: 94%; }
+  .msg.user { max-width: 88%; }
+  .bubble { font-size: 15px; line-height: 1.8; }
+  /* 觸控沒有「滑過」:訊息上的按鈕常駐,且點得到 */
+  .msg-actions { opacity: 1 !important; visibility: visible !important; flex-wrap: wrap; gap: 4px; }
+  .msg-actions button { min-height: 36px; padding: 0 10px; font-size: 13px; }
+
+  /* ---------- 輸入區:角色一行、輸入框 + 送出同一排 ---------- */
+  .composer { padding: 8px 10px 8px; gap: 8px; }
+  body.kb-open .composer { padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
+  .persona-row { gap: 6px; }
+  .persona-seg { width: 100%; }
+  .seg.persona-seg button { flex: 1; justify-content: center; height: 36px !important; padding: 0 6px !important; font-size: 14px; }   /* 與送出等按鈕同為 14px */
+  .composer-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+  .composer textarea { min-height: 48px; max-height: 132px; padding: 11px 12px; line-height: 1.5; border-radius: 12px; }
+  .send-col { width: auto; flex-direction: row; align-items: flex-end; gap: 6px; }
+  .send-col .btn { width: auto; }
+  .send-col .lookup-btn { width: 48px; height: 48px; padding: 0; gap: 0; font-size: 0; border-radius: 12px; justify-content: center; }   /* 只留放大鏡;gap 歸零,圖示才會正中央 */
+  .send-col .lookup-btn svg { width: 20px; height: 20px; }
+  .send-btn { height: 48px; padding: 0 18px; font-size: 14px; border-radius: 12px; }                 /* 字級與角色按鈕、其他按鈕統一 */
+  .pending-quote { font-size: 14px; }
+  .pending-quote button { width: 36px; height: 36px; }
+
+  /* ---------- 選取文字工具列:貼在分頁列(與浮動面板)正上方 ---------- */
+  .sel-toolbar.docked {
+    left: 8px !important; right: 8px;
+    bottom: calc(var(--nav-h) + var(--safe-bottom) + var(--sheet-pad) + 8px);
+    z-index: 62;
+  }
+  body.kb-open .sel-toolbar.docked { bottom: calc(var(--kb-h, 0px) + 8px); }
+  .sel-toolbar.docked { max-width: calc(100vw - 16px); padding: 4px; }
+  .sel-toolbar.docked .st-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; width: 100%; }
+  .sel-toolbar.docked .st-row button {
+    min-width: 0; padding: 0 2px; height: 54px;
+    flex-direction: column; justify-content: center; align-items: center; gap: 3px;
+    font-size: 12px; line-height: 1.2; text-align: center; white-space: normal;   /* 四顆平分寬度,字太長就換行,不會超出 */
+  }
+  .sel-toolbar.docked .st-row button svg { display: block !important; flex: none; width: 18px; height: 18px; }
+
+  /* ---------- 簡要查詢:從分頁列上方升起 ---------- */
+  .lookup-panel {
+    left: 8px; right: 8px; width: auto;
+    bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px) !important;
+    z-index: 66; max-height: 70dvh;
+  }
+  body.kb-open .lookup-panel { bottom: calc(var(--kb-h, 0px) + 8px) !important; max-height: calc(var(--app-h, 100dvh) - 16px); }
+  .lk-input-row input { height: 44px; }
+  .lk-input-row .btn { height: 44px; }
+
+  /* ---------- 浮動工具座(對話樹、筆記) ---------- */
+  .fab-dock {
+    display: flex; flex-direction: column; gap: 10px;
+    position: fixed; right: 10px; z-index: 25;   /* 低於頂列(30),選單展開時不會蓋住選單 */
+    top: var(--fab-top, 55%);
+    touch-action: none;
+  }
+  .fab {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    width: 46px; height: 46px; border-radius: 50%; opacity: .94;
+    border: 1px solid #D9B5BA; background: #fff; color: var(--accent);
+    box-shadow: 0 6px 18px rgba(31,27,26,.22);
+    touch-action: none; transition: transform .15s;
+  }
+  .fab:active { transform: scale(.94); }
+  .fab[hidden] { display: none; }
+  .fab svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .fab .fab-count {
+    position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px;
+    border-radius: 10px; background: var(--accent); color: #fff;
+    font-size: 11.5px; font-weight: 700; line-height: 20px; text-align: center;
+  }
+  .fab .fab-count:empty { display: none; }
+  .fab.bump { animation: fabBump .5s ease; }
+  @keyframes fabBump { 30% { transform: scale(1.18); } 60% { transform: scale(.95); } }
+  body.kb-open .fab-dock, body.sheet-open .fab-dock,
+  body.dialog-open .fab-dock, body.gate-open .fab-dock { display: none; }
+
+  /* ---------- 浮動面板:筆記(#panelSide)與對話樹(#panelTreeSheet)各一個,一次開一個 ---------- */
+  #panelSide, #panelTreeSheet { display: none !important; }
+  body[data-sheet="notes"] #panelSide,
+  body[data-sheet="tree"]  #panelTreeSheet {
+    display: flex !important; flex-direction: column;
+    position: fixed; left: 0; right: 0;
+    bottom: var(--kb-h, 0px);                              /* 蓋住分頁列(和回顧視窗一樣),鍵盤升起時抬到鍵盤上方 */
+    height: var(--sheet-h, 55dvh) !important;
+    min-height: 0 !important; max-height: none !important; flex: none !important; width: 100% !important;
+    z-index: 58;
+    background: var(--panel);
+    border-radius: 18px 18px 0 0;
+    border: 1px solid var(--line); border-bottom: 0;
+    box-shadow: 0 -8px 28px rgba(31,27,26,.18);
+    animation: sheetUp .22s ease-out;
+    overscroll-behavior: contain;
+  }
+  body.sheet-dragging #panelSide, body.sheet-dragging #panelTreeSheet { animation: none; transition: none; }
+  /* 暗色遮罩:和「回顧」等彈窗同一個暗度;點背景即收起 */
+  body.sheet-open .sheet-scrim, body.lookup-open .sheet-scrim {
+    display: block; position: fixed; inset: 0; z-index: 57;
+    background: rgba(31,27,26,.40); animation: scrimIn .2s ease-out;
+  }
+  @keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes sheetUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .sheet-grip {
+    display: flex; align-items: center; justify-content: center;
+    flex: none; height: 28px; cursor: grab; touch-action: none;
+  }
+  .sheet-grip i { width: 42px; height: 5px; border-radius: 3px; background: #D6CFC7; }
+  .sheet-head { display: flex; align-items: center; gap: 8px; flex: none; padding: 0 8px 6px 18px; }
+  .sheet-title { flex: 1; min-width: 0; font-size: 17px; font-weight: 700; white-space: nowrap; }
+  .sheet-title small { font-size: 13px; font-weight: 400; color: var(--ink-soft); margin-left: 6px; }
+  .sheet-close {
+    flex: none; width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; background: none; color: var(--ink-soft); border-radius: 50%;
+  }
+  .sheet-close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+  /* 筆記面板:原本右欄只留筆記區;「手寫筆記」搬到面板標題列 */
+  #panelSide #treeSec, #panelSide #sideSplitter { display: none !important; }
+  #panelSide .side-sec#notesSec { flex: 1 1 auto !important; min-height: 0; }
+  #panelSide #notesSec .sec-head { display: none; }
+  #panelSide .col-collapse, #panelSide .notes-collapse { display: none !important; }
+  .sheet-head #btnAddNote {
+    height: 36px; padding: 0 14px; font-size: 14px;
+    background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; border-radius: 18px;
+  }
+  .notes-area { padding: 0 12px calc(16px + var(--safe-bottom)); gap: 10px; }
+  .note-filters { padding: 0 12px 8px; }
+  .nf-chip { height: 34px; padding: 0 13px; font-size: 13px; }
+  .note-card { padding: 14px; }
+  .note-card .n-title, .note-card .n-text, .note-card .n-quote { font-size: 15px; }
+  .note-card .n-tools button { padding: 9px 10px; font-size: 14px; }
+  .n-grip { width: 36px; height: 36px; }
+  .n-del { width: 36px; height: 36px; }
+  .note-new .nn-title { font-size: 16px; }
+  .note-new textarea { min-height: 96px; font-size: 16px; }
+  .note-new .nn-row .btn, .note-new .nn-row .mini-btn { height: 40px; }
+
+  /* 對話樹面板 */
+  #panelTreeSheet #treeSec { display: flex; flex: 1 1 auto !important; min-height: 0; }
+  #panelTreeSheet #treeSec .sec-head { display: none; }
+  #panelTreeSheet .tree-list { padding: 0 10px calc(14px + var(--safe-bottom)); gap: 4px; }
+  #panelTreeSheet .tip { margin: 0 12px 8px; font-size: 13px; }
+  .tree-pick { padding: 12px 6px; font-size: 15px; }
+  .tree-row > button:not(.tree-pick) { min-width: 40px; min-height: 40px; }
+
+  /* ---------- 彈窗改成由下往上的全寬面板 ---------- */
+  .overlay { align-items: flex-end; padding: 0; }
+  .overlay .dialog, .overlay .sheet {
+    width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+    max-height: 92dvh; border-radius: 18px 18px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .overlay .sheet { padding: 22px 18px calc(18px + env(safe-area-inset-bottom, 0px)); }
+  .overlay .help-dialog { height: 92dvh; }
+  .help-nav { flex: 1 1 100%; flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line-soft); padding: 8px; scrollbar-width: none; }
+  .help-nav::-webkit-scrollbar { display: none; }
+  .help-nav button { flex: none; height: 40px; }
+  .dlg-head { padding: 14px 8px 12px 18px; }
+  .dlg-foot .btn, .sheet .row .btn { height: 46px; }
+  #summaryOverlay .row { gap: 8px; }
+  #summaryOverlay .row .spacer { display: none; }
+  #summaryOverlay .row .btn { flex: 1 1 calc(50% - 4px); justify-content: center; }
+  #summaryOverlay .row .btn.primary { flex-basis: 100%; }
+  .ex-formats { grid-template-columns: 1fr; }
+  .stage-cards { grid-template-columns: 1fr; }
+  .toast { bottom: calc(var(--nav-h) + var(--safe-bottom) + 14px); }
+  body.kb-open .toast { bottom: calc(var(--kb-h, 0px) + 14px); }
+  body.sheet-open .toast { bottom: calc(var(--nav-h) + var(--safe-bottom) + var(--sheet-pad) + 14px); }
+
+  /* 入口選擇、登入、加入課程、文本清單:收緊間距,選項不必捲動就看得到 */
+  .course-gate { padding: 10px 10px 16px; }
+  .cg-card { padding: 18px 16px 16px; border-radius: 16px; }
+  .cg-card h2 { font-size: 19px; }
+  .entry-logo { width: 48px; height: 46px; margin-bottom: 8px; }
+  .cg-intro { font-size: 13px; line-height: 1.75; }
+  .cg-entries { gap: 10px; margin-top: 14px; }
+  .cg-entry { display: grid; grid-template-columns: 34px 1fr; column-gap: 12px; align-items: center; padding: 14px 14px; }
+  .cg-entry .ce-icon { grid-row: 1 / span 2; font-size: 24px; margin: 0; text-align: center; }
+  .cg-entry .ce-title { font-size: 16px; margin: 0; }
+  .cg-entry .ce-desc { font-size: 12px; line-height: 1.6; }
+  .cg-entry-teacher .ce-icon { font-size: 20px; }
+  .cg-card input[type="text"], .cg-card input[type="email"], .cg-card input[type="password"] { height: 46px; }
+  .cg-go { height: 48px; font-size: 16px; }
+  .cg-back { height: 44px; }
+  .cg-item { padding: 16px 14px; }
+  .cg-head { flex-wrap: wrap; }
+  .cg-acts .btn { height: 42px; }
+  /* 上傳 / 更換文本視窗 */
+  .up-dialog .dropzone { padding: 22px 14px; }
+  .up-hero { display: none; }
+}
+
+@media (max-width: 380px) {
+  .brand-name { display: none; }
+  .phone-nav button { font-size: 11px; }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  .topbar, .fab, #panelSide, #panelTreeSheet { transition: none !important; animation: none !important; }
+}
+
+
+/* ---------- 對話樹直接拖曳 + 回顧視窗按鈕列 + 鍵盤時收頂列 ---------- */
+@media (max-width: 760px) {
+  .sheet-hint { padding: 0 18px 8px; font-size: 12.5px; line-height: 1.6; color: var(--ink-soft); }
+  #panelTreeSheet .tree-row { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #panelTreeSheet .tree-pick { touch-action: none; }             /* 按住名稱一滑就是拖曳;捲動留給「⋯」欄與空白處 */
+  .tree-row.dragging { opacity: .35; }
+  .tree-row.drop-target { box-shadow: inset 0 0 0 2px var(--branch); background: #FBF1EF; }
+  .tree-row.drop-bad { box-shadow: inset 0 0 0 2px #D6CFC7; opacity: .5; }
+  .tree-ghost {
+    position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; will-change: transform;
+    max-width: 70vw; padding: 9px 16px; border: 1.5px solid var(--accent); border-radius: 14px;
+    background: var(--panel); color: var(--ink); font-size: 14px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 0 10px 28px rgba(31,27,26,.28);
+  }
+  body.tree-dragging { overscroll-behavior: none; }
+
+  /* 回顧視窗:複製｜存成筆記 一排,匯出筆記、關閉各佔一整排 */
+  #summaryOverlay .row .btn { flex: 1 1 calc(50% - 4px); }
+  #summaryOverlay #btnSummaryExport { flex-basis: 100%; order: 1; }
+  #summaryOverlay .row .btn.primary { flex-basis: 100%; order: 2; }
+
+  /* 鍵盤升起時頂列也收起,把高度全留給輸入 */
+  body.kb-open .topbar { margin-top: calc(-1 * var(--tb-h, 48px)); }
+}
+
+/* ---------- 保留/收束列在分支列下方;簡要查詢面板改從上方展開,不會被鍵盤或分頁列蓋住 ---------- */
+@media (max-width: 760px) {
+  #panelChat > * { order: 5; }
+  #panelChat > .branch-bar { order: 1; }
+  #panelChat > .col-head { order: 2; border-top: 0; border-bottom: 1px solid var(--line); }
+  #panelChat > .briefing { order: 3; }
+
+  .lookup-panel {
+    top: calc(var(--tb-h, 48px) + 8px); bottom: auto !important;
+    max-height: calc(var(--app-h, 100dvh) - var(--tb-h, 48px) - 20px);
+  }
+  body.chrome-hidden .lookup-panel { top: 8px; max-height: calc(var(--app-h, 100dvh) - 16px); }
+  body.kb-open .lookup-panel { top: 8px; bottom: auto !important; max-height: calc(var(--app-h, 100dvh) - 16px); }
+  .lk-body { max-height: min(40vh, calc(var(--app-h, 100dvh) - 220px)); }
+}
+
+/* ---------- 頂列動作鈕(對話樹、筆記)、分支內路徑列、簡要查詢 ---------- */
+@media (max-width: 760px) {
+  .fab-dock, .branch-bar { display: none !important; }          /* 浮動球與分支列都不再使用 */
+  .tb-right { gap: 2px; }
+  .tb-act {
+    position: relative; flex: none; width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; border-radius: 10px; background: none; color: var(--accent);
+  }
+  .tb-act[hidden] { display: none; }
+  .tb-act:active { background: var(--bg); }
+  .tb-act svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tb-act .fab-count {
+    position: absolute; top: -1px; right: -3px; min-width: 15px; height: 15px; padding: 0 3px;   /* 貼在圖示外側,不蓋住圖示 */
+    border-radius: 8px; background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 700; line-height: 15px; text-align: center;
+  }
+  .tb-act .fab-count:empty { display: none; }
+  .tb-act.bump { animation: fabBump .5s ease; }
+
+  /* 人在分支裡:對話上方一條路徑列 + 保留/收束 */
+  #panelChat.on-branch .col-head { display: flex; align-items: center; justify-content: space-between; }
+  #panelChat.on-branch .crumbs {
+    display: flex; flex: 1 1 0; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; font-size: 14px;
+  }
+  #panelChat.on-branch .crumbs::-webkit-scrollbar { display: none; }
+  #panelChat.on-branch .crumbs > * { flex: none; }
+  #panelChat.on-branch .crumbs > .c-sep:first-child { display: none; }
+  #panelChat.on-branch .branch-actions.on { flex: none; }
+
+  /* 簡要查詢:輸入框不撐破面板,「查詢」鈕永遠看得到 */
+  .lk-input-row { gap: 8px; }
+  .lk-input-row input { flex: 1 1 0; width: 0; min-width: 0; }
+  .lk-input-row .btn { flex: none; min-width: 68px; }
+}

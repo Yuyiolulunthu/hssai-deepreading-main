@@ -1,0 +1,12 @@
+.git
+.claude
+data
+_測試報告
+_備份
+_處理紀錄*.md
+給又懿的修改摘要_*.md
+config.php
+cacert.pem
+start-local.bat
+*.log
+node_modules

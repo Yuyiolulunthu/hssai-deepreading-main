@@ -1,0 +1,11 @@
+# 機密設定(含 API 金鑰與後台密碼)——絕不進版控
+config.php
+
+# 執行期資料(統計、課程、學生名單、prompt 覆寫、解析結果)
+data/
+
+# 系統雜項
+.DS_Store
+*.log
+*.bak
+node_modules/
